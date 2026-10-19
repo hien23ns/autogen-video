@@ -187,20 +187,20 @@ export function pickSfxForScene(args: {
   return null;
 }
 
-/** Recommended volume + offset per source/category */
+/** Recommended volume + offset per source/category (subtle, gentle so voice is crystal clear) */
 export function defaultPlayback(picked: PickedSfx): { volume: number; offsetSec: number } {
   const cat = picked.relPath.split("/")[0];
   switch (cat) {
-    case "transition": return { volume: 0.40, offsetSec: 0.0 };
-    case "emphasis":   return { volume: 0.35, offsetSec: 0.2 };
-    case "alert":      return { volume: 0.40, offsetSec: 0.1 };
-    case "success":    return { volume: 0.35, offsetSec: 0.3 };
-    case "fail":       return { volume: 0.35, offsetSec: 0.1 };
-    case "reveal":     return { volume: 0.30, offsetSec: 0.2 };
-    case "countdown":  return { volume: 0.30, offsetSec: 0.0 };
-    case "cinematic":  return { volume: 0.35, offsetSec: 0.0 };
-    case "drumroll":   return { volume: 0.40, offsetSec: 0.0 };
-    case "outro":      return { volume: 0.35, offsetSec: 0.5 };
-    default:           return { volume: 0.35, offsetSec: 0.1 };
+    case "transition": return { volume: 0.18, offsetSec: 0.0 };
+    case "emphasis":   return { volume: 0.15, offsetSec: 0.2 };
+    case "alert":      return { volume: 0.18, offsetSec: 0.1 };
+    case "success":    return { volume: 0.16, offsetSec: 0.3 };
+    case "fail":       return { volume: 0.18, offsetSec: 0.1 };
+    case "reveal":     return { volume: 0.15, offsetSec: 0.2 };
+    case "countdown":  return { volume: 0.15, offsetSec: 0.0 };
+    case "cinematic":  return { volume: 0.16, offsetSec: 0.0 };
+    case "drumroll":   return { volume: 0.18, offsetSec: 0.0 };
+    case "outro":      return { volume: 0.16, offsetSec: 0.5 };
+    default:           return { volume: 0.16, offsetSec: 0.1 };
   }
 }

@@ -104,6 +104,7 @@ export const ScriptSchema = z.object({
       image: z.string().url().nullable(),
     }),
     channel: z.string().min(1),
+    recommendedTheme: z.string().optional(),
   }),
   voice: z.object({
     provider: z.string().min(1),

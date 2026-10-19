@@ -3,7 +3,7 @@ import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import pLimit from "p-limit";
 import { ScriptSchema, type Script } from "./render/script-schema.js";
-import { loadConfig, type VideoTheme } from "./config.js";
+import { loadConfig, normalizeTheme, type VideoTheme } from "./config.js";
 import { toSlug } from "./utils/slug.js";
 import { createTtsClient } from "./tts/tts-client.js";
 import { fetchImage } from "./assets/image-fetcher.js";
@@ -211,8 +211,21 @@ export async function runPipeline(input: string | PipelineRunOptions): Promise<P
       : picked.source;
     log.info(`  scene ${scene.id}: SFX -> ${picked.relPath} (${why})`);
   }
-  log.info(`  mixing ${sfxList.length} SFX into voice.mp3`);
-  await mixSfxOntoVoice(voiceRawMp3, sfxList, voiceMp3);
+  log.info(`  mixing ${sfxList.length} subtle SFX into voice.mp3`);
+
+  // Detect optional Background Music (BGM)
+  const defaultBgmPath = join(__dirname, "..", "assets", "bgm.mp3");
+  const bgmCandidate = process.env.BGM_PATH || defaultBgmPath;
+  const bgmVolume = process.env.BGM_VOLUME ? parseFloat(process.env.BGM_VOLUME) : 0.08;
+  const hasBgm = existsSync(bgmCandidate);
+  if (hasBgm) {
+    log.info(`  mixing gentle BGM background music (${bgmCandidate}, volume: ${(bgmVolume * 100).toFixed(0)}%)`);
+  }
+
+  await mixSfxOntoVoice(voiceRawMp3, sfxList, voiceMp3, {
+    bgmPath: hasBgm ? bgmCandidate : undefined,
+    volume: bgmVolume,
+  });
 
   const totalAudioSec = await getDurationSec(voiceMp3);
   log.info(`  voice.mp3 total: ${totalAudioSec.toFixed(2)}s`);
@@ -282,8 +295,10 @@ export async function runPipeline(input: string | PipelineRunOptions): Promise<P
 
   // Copy templates next to the index.html so relative paths resolve.
   // base.html.tmpl + animations.js are shared across themes (structure/behavior);
-  // only styles.<theme>.css differs (visual look), and always lands as "styles.css".
-  const selectedTheme = opts.theme || cfg.videoTheme;
+  // Priority: 1. opts.theme (explicit CLI/caller) -> 2. script.metadata.recommendedTheme (AI Auto-theme) -> 3. cfg.videoTheme
+  const autoTheme = script.metadata.recommendedTheme ? normalizeTheme(script.metadata.recommendedTheme) : undefined;
+  const selectedTheme = opts.theme || autoTheme || cfg.videoTheme;
+  log.info(`  applying visual theme: ${selectedTheme}${!opts.theme && autoTheme ? " (auto-detected by AI based on content)" : ""}`);
   const themeFile =
     selectedTheme === "light-pro" ? "styles.light-pro.css"
     : selectedTheme === "cyberpunk" ? "styles.cyberpunk.css"

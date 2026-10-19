@@ -6,7 +6,7 @@ import axios from "axios";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import FormData from "form-data";
 import { scrapeUrl } from "../scraper/web-scraper.js";
-import { generateScriptFromArticle } from "../generator/ai-script.js";
+import { generateScriptFromArticle, detectBestTheme } from "../generator/ai-script.js";
 import { runPipeline } from "../pipeline.js";
 import { loadConfig, normalizeTheme, type VideoTheme } from "../config.js";
 import { log } from "../utils/logger.js";
@@ -128,7 +128,7 @@ async function triggerGitHubAction(url: string, chatId: number | string, theme: 
 /**
  * Parses user message to extract URL and optional theme name
  */
-function parseUserPrompt(text: string): { url: string; theme: VideoTheme } {
+function parseUserPrompt(text: string): { url: string; theme?: VideoTheme } {
   // Regex to extract URL
   const urlMatch = text.match(/(https?:\/\/[^\s]+)/i);
   const url = urlMatch ? urlMatch[1].trim() : "";
@@ -136,32 +136,49 @@ function parseUserPrompt(text: string): { url: string; theme: VideoTheme } {
   // Remaining text to detect theme
   const remaining = text.replace(url, "").toLowerCase();
 
-  let theme: VideoTheme = "cyberpunk";
-  try {
-    if (/matrix|hacker|green/i.test(remaining)) theme = "matrix-code";
-    else if (/sunset|synthwave|purple/i.test(remaining)) theme = "sunset-vibes";
-    else if (/crimson|red|fire/i.test(remaining)) theme = "crimson-beast";
-    else if (/dark|navy/i.test(remaining)) theme = "dark-neon";
-    else if (/light|white/i.test(remaining)) theme = "light-pro";
-    else if (/cyber|cyberpunk/i.test(remaining)) theme = "cyberpunk";
-  } catch {
-    theme = "cyberpunk";
-  }
+  let theme: VideoTheme | undefined = undefined;
+  if (/matrix|hacker|green/i.test(remaining)) theme = "matrix-code";
+  else if (/sunset|synthwave|purple/i.test(remaining)) theme = "sunset-vibes";
+  else if (/crimson|red|fire/i.test(remaining)) theme = "crimson-beast";
+  else if (/dark|navy/i.test(remaining)) theme = "dark-neon";
+  else if (/light|white/i.test(remaining)) theme = "light-pro";
+  else if (/cyber|cyberpunk/i.test(remaining)) theme = "cyberpunk";
 
   return { url, theme };
 }
 
-async function handleGenerateVideo(chatId: number | string, url: string, theme: VideoTheme = "cyberpunk"): Promise<void> {
+async function handleGenerateVideo(chatId: number | string, url: string, explicitTheme?: VideoTheme): Promise<void> {
+  await sendMessage(chatId, "🔍 *[1/4]* Đang cào dữ liệu và phân tích bài viết / repository...");
+  
+  let article;
+  try {
+    article = await scrapeUrl(url);
+  } catch (err: any) {
+    await sendMessage(chatId, `❌ Lỗi khi đọc nội dung từ URL: \`${err.message}\``);
+    return;
+  }
+
+  // Tự động phân tích và chọn theme hoàn hảo nếu người dùng không chỉ định
+  const theme = explicitTheme || detectBestTheme(article);
   const info = THEME_DESCRIPTIONS[theme];
+
+  if (!explicitTheme) {
+    await sendMessage(
+      chatId,
+      `🎯 *AI tự động nhận diện nội dung & chọn theme phù hợp:*\n` +
+      `└ Giao diện: ${info.icon} *${info.name}*\n` +
+      `└ Lý do: _${info.desc}_`
+    );
+  }
 
   // Option 1: Trigger GitHub Actions runner nếu có GITHUB_PAT
   if (GITHUB_PAT) {
     await sendMessage(
       chatId,
-      `🚀 *Đã nhận lệnh tạo video 24/7!*\n\n` +
+      `🚀 *Đã kích hoạt GitHub Actions Cloud Render 24/7!*\n\n` +
       `🔗 *Nguồn:* \`${url}\`\n` +
-      `🎨 *Giao diện (${info.icon}):* \`${info.name}\` — _${info.desc}_\n\n` +
-      `⚙️ Đang kích hoạt *GitHub Actions Cloud Runner* để biên kịch & render tự động. Video sẽ được gửi về đây sau khoảng 2 - 3 phút!`
+      `🎨 *Theme:* ${info.icon} \`${info.name}\`\n\n` +
+      `⚙️ Máy ảo Ubuntu đang chạy ngầm trên Cloud để tạo giọng đọc, phụ đề Kinetic và mix nhạc nền êm dịu. Video sẽ được gửi về đây sau khoảng 2 - 3 phút!`
     );
     const ok = await triggerGitHubAction(url, chatId, theme);
     if (ok) return;
@@ -179,12 +196,8 @@ async function handleGenerateVideo(chatId: number | string, url: string, theme: 
 
   const cfg = loadConfig();
   try {
-    // 1. Scrape
-    await sendMessage(chatId, "🔍 *[1/4]* Đang cào dữ liệu và phân tích nội dung...");
-    const article = await scrapeUrl(url);
-
     // 2. AI Script
-    await sendMessage(chatId, "🧠 *[2/4]* Đang tạo kịch bản 3-Giây Hook bùng nổ bằng Gemini Flash AI...");
+    await sendMessage(chatId, "🧠 *[2/4]* Đang khởi tạo kịch bản 3-Giây Hook bùng nổ bằng Gemini Flash AI...");
     const scriptData = await generateScriptFromArticle(article, {
       geminiApiKey: cfg.geminiApiKey,
       provider: cfg.ttsProvider,
@@ -193,7 +206,7 @@ async function handleGenerateVideo(chatId: number | string, url: string, theme: 
     });
 
     // 3. Render
-    await sendMessage(chatId, `🎙️ *[3/4]* Đang đọc voice Edge-TTS (+16%), tạo phụ đề Kinetic Pop & mix hiệu ứng SFX với theme *${info.name}*...`);
+    await sendMessage(chatId, `🎙️ *[3/4]* Đang đọc voice Edge-TTS (+16%), tạo phụ đề Kinetic Pop & mix nhạc nền BGM êm dịu với theme *${info.name}*...`);
     const result = await runPipeline({
       scriptData,
       theme,

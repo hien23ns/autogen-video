@@ -2,6 +2,7 @@ import axios from "axios";
 import type { Script } from "../render/script-schema.js";
 import { ScriptSchema } from "../render/script-schema.js";
 import type { ScrapedArticle } from "../scraper/web-scraper.js";
+import { normalizeTheme, type VideoTheme } from "../config.js";
 import { log } from "../utils/logger.js";
 
 export interface GenerateScriptOptions {
@@ -9,6 +10,61 @@ export interface GenerateScriptOptions {
   provider?: string;
   voiceId?: string;
   channelName?: string;
+}
+
+/**
+ * Automatically detects the best video theme based on article content, keywords, and domain.
+ */
+export function detectBestTheme(article: ScrapedArticle): VideoTheme {
+  const text = `${article.title} ${article.url} ${article.description || ""} ${article.content.slice(0, 3000)}`.toLowerCase();
+
+  // 1. Crimson Beast (Urgent, Vulnerabilities, Zero-days, Security breaches, Disasters, Tech drama)
+  if (
+    /zero-day|cve-|vulnerability|exploit|ransomware|data breach|cyberattack|critical bug|lỗ hổng|tấn công mạng|mã độc|nguy hiểm|khẩn cấp|sập mạng|scam|lừa đảo|drama/i.test(
+      text
+    )
+  ) {
+    return "crimson-beast";
+  }
+
+  // 2. Matrix Code (Hacker tools, Dev tools, Pentesting, Linux, Terminal, CLI, Backend systems, Low-level code)
+  if (
+    /secmon|security|firewall|wireshark|suricata|nmap|reverse engineering|malware|pentest|bảo mật|an ninh|terminal|cli|bash|shell|linux|kernel|sysadmin|devops|docker|kubernetes|rust|golang|c\+\+|compiler|git/i.test(
+      text
+    )
+  ) {
+    return "matrix-code";
+  }
+
+  // 3. Sunset Vibes (AI, LLMs, Neural Nets, Computer Vision, Design, Frontend, UI/UX, Mobile apps)
+  if (
+    /ai|llm|gpt|gemini|claude|deepseek|openai|model|neural|diffusion|machine learning|trí tuệ nhân tạo|design|ui|ux|frontend|react|vue|svelte|tailwind|css|mobile|flutter|swift|creative/i.test(
+      text
+    )
+  ) {
+    return "sunset-vibes";
+  }
+
+  // 4. Light Pro (Finance, Business, Fintech, Startups, Corporate, Economy, Official journalism)
+  if (
+    /finance|fintech|banking|stock|investment|economy|business|startup|revenue|tài chính|kinh tế|doanh nghiệp|ngân hàng|chứng khoán|đầu tư|thị trường|báo cáo|ceo/i.test(
+      text
+    )
+  ) {
+    return "light-pro";
+  }
+
+  // 5. Dark Neon (Cloud Enterprise, Big Data, Databases, Distributed architecture, Backend servers)
+  if (
+    /cloud|aws|azure|gcp|database|sql|postgres|mongodb|redis|kafka|architecture|máy chủ|hệ thống lớn|enterprise|server/i.test(
+      text
+    )
+  ) {
+    return "dark-neon";
+  }
+
+  // Default theme: Cyberpunk (Futuristic, gadgets, new frameworks, general tech hype)
+  return "cyberpunk";
 }
 
 /**
@@ -55,6 +111,13 @@ export function sanitizeScriptData(data: any): any {
   if (data.metadata) {
     if (data.metadata.title) data.metadata.title = String(data.metadata.title).slice(0, 80);
     if (data.metadata.channel) data.metadata.channel = String(data.metadata.channel).slice(0, 40);
+    if (data.metadata.recommendedTheme) {
+      try {
+        data.metadata.recommendedTheme = normalizeTheme(String(data.metadata.recommendedTheme));
+      } catch {
+        delete data.metadata.recommendedTheme;
+      }
+    }
   }
   if (Array.isArray(data.scenes)) {
     data.scenes = data.scenes.map((scene: any) => {
@@ -149,6 +212,15 @@ ${article.content.slice(0, 3500)}
    - source: "${escapeJson(article.domain)}"
    - voiceText: Lời kêu gọi follow kênh tự nhiên, dứt khoát để không bỏ lỡ công nghệ mới mỗi ngày (18 - 25 từ).
 
+6. TỰ ĐỘNG CHỌN GIAO DIỆN (THEME) PHÙ HỢP CHO METADATA ("recommendedTheme"):
+   Hãy phân tích nội dung bài viết và chọn duy nhất 1 trong 6 theme sau:
+   - "matrix-code": Bài viết về an ninh mạng, bảo mật, hacker, Linux, terminal CLI, dev tool, backend code.
+   - "sunset-vibes": Bài viết về AI, LLM, Computer Vision, Frontend, React, Mobile app, Design, UI/UX.
+   - "crimson-beast": Bài viết về lỗ hổng Zero-day, cảnh báo bảo mật nguy hiểm, ransomware, tech drama.
+   - "light-pro": Bài viết về tài chính, kinh doanh số, doanh nghiệp B2B, tin tức kinh tế, startup.
+   - "dark-neon": Bài viết về Cloud, cơ sở dữ liệu, kiến trúc hệ thống, server enterprise.
+   - "cyberpunk": Bài viết về công nghệ tương lai, robots, gadgets, tin tức công nghệ tổng hợp.
+
 ════════════════════════════════════════════════════════════════════════════
 🔊 QUY TẮC NGỮ ÂM CHO voiceText (ĐỌC BỞI TTS TIẾNG VIỆT):
 ════════════════════════════════════════════════════════════════════════════
@@ -181,7 +253,8 @@ CẤU TRÚC JSON PHẢI TRẢ VỀ CHÍNH XÁC:
       "domain": "${escapeJson(article.domain)}",
       "image": ${article.ogImage ? `"${escapeJson(article.ogImage)}"` : "null"}
     },
-    "channel": "${escapeJson(meta.channel)}"
+    "channel": "${escapeJson(meta.channel)}",
+    "recommendedTheme": "matrix-code"
   },
   "voice": {
     "provider": "${escapeJson(meta.provider)}",
@@ -365,6 +438,7 @@ export function synthesizeFallbackScript(
           image: article.ogImage,
         },
         channel: meta.channel,
+        recommendedTheme: detectBestTheme(article),
       },
       voice: {
         provider: meta.provider,
@@ -462,6 +536,7 @@ export function synthesizeFallbackScript(
         image: article.ogImage,
       },
       channel: meta.channel,
+      recommendedTheme: detectBestTheme(article),
     },
     voice: {
       provider: meta.provider,

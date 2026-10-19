@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { writeFile, mkdtemp, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -141,13 +142,32 @@ export interface SfxMixSpec {
  *
  * If `sfxList` is empty, just copies voicePath → outPath.
  */
+export interface BgmOptions {
+  /** Path to background music file (e.g. assets/bgm.mp3) */
+  bgmPath?: string;
+  /** Volume 0–1, default 0.08 (subtle, gentle so it never overwhelms speech) */
+  volume?: number;
+}
+
+/**
+ * Mix SFX and optional gentle Background Music (BGM) onto voice.mp3.
+ *
+ * - Voice stays at full volume (1.0)
+ * - SFX is timed to scene start and scaled subtly (0.15–0.18)
+ * - BGM runs continuously at very gentle volume (~0.08), auto-looping with fade-out
+ * - Output is mp3 at 192kbps
+ */
 export async function mixSfxOntoVoice(
   voicePath: string,
   sfxList: SfxMixSpec[],
   outPath: string,
+  bgmOpts?: BgmOptions,
 ): Promise<void> {
-  if (sfxList.length === 0) {
-    // No SFX — just normalize/copy voice
+  const hasSfx = sfxList.length > 0;
+  const hasBgm = Boolean(bgmOpts?.bgmPath && existsSync(bgmOpts.bgmPath));
+
+  if (!hasSfx && !hasBgm) {
+    // Neither SFX nor BGM — just normalize voice
     await run("ffmpeg", [
       "-y", "-i", voicePath,
       "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100",
@@ -156,40 +176,60 @@ export async function mixSfxOntoVoice(
     return;
   }
 
+  const voiceDur = await getDurationSec(voicePath);
   const ffArgs: string[] = ["-y", "-i", voicePath];
   const filterParts: string[] = [];
   const sfxLabels: string[] = [];
+  let nextInputIdx = 1;
 
-  sfxList.forEach((s, i) => {
-    ffArgs.push("-i", s.path);
-    const inputIdx = i + 1; // voice is index 0
-    const outLabel = `s${i}`;
-    const delayMs = Math.max(0, Math.round(s.startSec * 1000));
-    // Per-SFX chain: resample to 44100 mono → adelay to start time → volume
-    filterParts.push(
-      `[${inputIdx}:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono,` +
-      `adelay=${delayMs}|${delayMs},volume=${s.volume}[${outLabel}]`
-    );
-    sfxLabels.push(`[${outLabel}]`);
-  });
+  // 1. SFX Inputs & filters
+  if (hasSfx) {
+    sfxList.forEach((s, i) => {
+      ffArgs.push("-i", s.path);
+      const outLabel = `s${i}`;
+      const delayMs = Math.max(0, Math.round(s.startSec * 1000));
+      filterParts.push(
+        `[${nextInputIdx}:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono,` +
+        `adelay=${delayMs}|${delayMs},volume=${s.volume}[${outLabel}]`
+      );
+      sfxLabels.push(`[${outLabel}]`);
+      nextInputIdx++;
+    });
 
-  // Mix all SFX layers together
-  let mixedSfxLabel: string;
-  if (sfxLabels.length === 1) {
-    mixedSfxLabel = sfxLabels[0];
-  } else {
-    filterParts.push(
-      `${sfxLabels.join("")}amix=inputs=${sfxLabels.length}:dropout_transition=0:normalize=0[sfxall]`
-    );
-    mixedSfxLabel = "[sfxall]";
+    if (sfxLabels.length > 1) {
+      filterParts.push(
+        `${sfxLabels.join("")}amix=inputs=${sfxLabels.length}:dropout_transition=0:normalize=0[sfxall]`
+      );
+    }
   }
 
-  // Voice path: resample, then mix with SFX layer (voice volume 1.0, SFX already scaled)
+  // 2. BGM Input & filter (looping, gentle 8% volume, fade out at end)
+  let bgmLabel = "";
+  if (hasBgm && bgmOpts?.bgmPath) {
+    const bgmVol = bgmOpts.volume ?? 0.08;
+    const fadeOutStart = Math.max(0, voiceDur - 1.5);
+    ffArgs.push("-stream_loop", "-1", "-i", bgmOpts.bgmPath);
+    const bgmInputIdx = nextInputIdx;
+    bgmLabel = "[bgm]";
+    filterParts.push(
+      `[${bgmInputIdx}:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono,` +
+      `volume=${bgmVol},afade=t=in:st=0:d=1.0,afade=t=out:st=${fadeOutStart.toFixed(2)}:d=1.5${bgmLabel}`
+    );
+    nextInputIdx++;
+  }
+
+  // 3. Voice normalization
   filterParts.push(
     `[0:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono[voice]`
   );
+
+  // 4. Final Mix: voice (full) + SFX (subtle) + BGM (gentle background)
+  const mixInputs: string[] = ["[voice]"];
+  if (hasBgm) mixInputs.push(bgmLabel);
+  if (hasSfx) mixInputs.push(sfxLabels.length === 1 ? sfxLabels[0] : "[sfxall]");
+
   filterParts.push(
-    `[voice]${mixedSfxLabel}amix=inputs=2:duration=first:dropout_transition=0:normalize=0[out]`
+    `${mixInputs.join("")}amix=inputs=${mixInputs.length}:duration=first:dropout_transition=0:normalize=0[out]`
   );
 
   ffArgs.push(
