@@ -34,9 +34,12 @@
 - 🎶 **Phụ Đề Karaoke Thời Gian Thực (Word-by-Word Highlight)**:
   - Từ đang đọc được phóng to và chuyển màu vàng/trắng neon nổi bật.
   - Visualizer sóng âm Equalizer chuyển động đồng bộ nhịp nói.
-- 🤖 **AI Biên Tập Kịch Bản Đa Năng (Google Gemini)**:
-  - Tích hợp Gemini API (`gemini-3.5-flash`, `gemini-3.5-flash-lite`) tự động đọc nội dung web/GitHub để viết kịch bản 5 cảnh giật tít, phiên âm số và ký hiệu chuẩn ngữ pháp tiếng Việt.
-  - Có sẵn bộ tổng hợp Offline Heuristic thông minh tự động kích hoạt nếu không có API key.
+- 🔊 **Hệ Thống Hiệu Ứng Âm Thanh SFX Đa Tầng (Sound Effects)**:
+  - Tích hợp 50 hiệu ứng âm thanh (Whoosh, Chime, Pop, Ding, ApplePay...) tự động mix mượt mà vào từng phân cảnh và keyword quan trọng dựa trên ngữ nghĩa (semantic keyword matching).
+- 🤖 **AI Biên Tập Kịch Bản Chuyên Sâu (Google Gemini)**:
+  - Tự động cào và đọc chi tiết toàn bộ nội dung file `README.md` từ GitHub repo (thay vì chỉ lấy thông tin sao/mô tả cơ bản), giúp AI phân tích sâu kiến trúc kỹ thuật và giải pháp cốt lõi.
+  - Tích hợp Gemini API (`gemini-3.5-flash`, `gemini-3.5-flash-lite`) với chiến lược kịch bản viral TikTok 45-55s (Hook giật tít, Body 1 công nghệ lõi, Body 2 ba tính năng ăn tiền, Body 3 nhận định chuyên môn, Outro CTA follow kênh).
+  - Tự động phiên âm thuật ngữ tiếng Anh ("AI" -> "ây ai", "LLM" -> "eo eo em", "Nginx" -> "en gin ích"...) và chuyển đổi số sang chữ đọc chuẩn tiếng Việt.
 
 ---
 
@@ -58,6 +61,9 @@ npm install
 
 # Cài đặt thư viện Python TTS (nếu chưa có)
 pip install edge-tts
+
+# Tải trọn bộ 50 hiệu ứng âm thanh chuyển cảnh SFX
+npm run sfx:download
 ```
 
 ---

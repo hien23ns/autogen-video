@@ -39,6 +39,7 @@ async function scrapeGitHubRepo(
   let description = `Dự án mã nguồn mở ${repo} trên GitHub bởi ${owner}.`;
   let content = description;
 
+  // 1. Fetch repository metadata
   try {
     const res = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
       headers: {
@@ -49,20 +50,72 @@ async function scrapeGitHubRepo(
     });
     if (res.status === 200 && res.data) {
       const data = res.data;
-      title = `${data.name}: ${data.description || "Dự án GitHub mới"}`;
-      description = data.description || description;
-      content = `Dự án: ${data.full_name}\nMô tả: ${data.description || "Không có mô tả"}\nNgôn ngữ chính: ${data.language || "Đa ngôn ngữ"}\nSố sao: ${data.stargazers_count || 0} stars\nForks: ${data.forks_count || 0}\nTopics: ${(data.topics || []).join(", ")}`;
+      title = `${data.name}: ${data.description || "Dự án công nghệ mã nguồn mở"}`;
+      if (data.description) description = data.description;
+      content = `Dự án GitHub: ${data.full_name}\nMô tả: ${data.description || ""}\nNgôn ngữ chính: ${data.language || "Python"}\nSố sao: ${data.stargazers_count || 0} stars\nForks: ${data.forks_count || 0}\nTopics: ${(data.topics || []).join(", ")}`;
     }
   } catch {
-    // If GitHub API rate limits or errors, fallback to web HTML scrape
+    // API rate limit or error, proceed to README fetch
+  }
+
+  // 2. Fetch README for deep architectural & feature context
+  let readmeText = "";
+  try {
+    const readmeRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+      headers: {
+        "User-Agent": "auto-news-video-scraper",
+        Accept: "application/vnd.github.raw",
+      },
+      timeout: 8000,
+    });
+    if (readmeRes.status === 200 && typeof readmeRes.data === "string") {
+      readmeText = readmeRes.data;
+    }
+  } catch {
+    // Fallback to raw githubusercontent main branch
     try {
-      const page = await scrapeWebPage(url, "github.com");
-      return {
-        ...page,
-        ogImage: page.ogImage || ogImage,
-      };
+      const rawRes = await axios.get(`https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`, {
+        timeout: 8000,
+      });
+      if (rawRes.status === 200 && typeof rawRes.data === "string") {
+        readmeText = rawRes.data;
+      }
     } catch {
-      // Use fallback
+      // Fallback master branch
+      try {
+        const rawMaster = await axios.get(`https://raw.githubusercontent.com/${owner}/${repo}/master/README.md`, {
+          timeout: 6000,
+        });
+        if (rawMaster.status === 200 && typeof rawMaster.data === "string") {
+          readmeText = rawMaster.data;
+        }
+      } catch {
+        // No README found
+      }
+    }
+  }
+
+  if (readmeText) {
+    const cleanReadme = readmeText
+      .replace(/!\[.*?\]\(.*?\)/g, "")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+      .replace(/```[\s\S]*?```/g, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    content += `\n\nNỘI DUNG TÀI LIỆU DỰ ÁN (README):\n${cleanReadme.slice(0, 3500)}`;
+
+    // If description is empty or default, extract summary from README
+    if (!description || description.includes("Dự án mã nguồn mở") || description === "Dự án GitHub mới") {
+      const summaryCandidate = readmeText
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l.length > 25 && !l.startsWith("#") && !l.startsWith("!") && !l.startsWith("["))[0];
+      if (summaryCandidate) {
+        description = summaryCandidate.slice(0, 200);
+        title = `${repo}: ${description.slice(0, 60)}`;
+      }
     }
   }
 

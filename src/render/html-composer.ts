@@ -98,13 +98,13 @@ function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string
   </div>
 </div>
 
+<div class="brand-shell-keyword">
+  <span>${escapeHtml(domain || "GITHUB.COM")}</span>
+</div>
+
 <div class="brand-shell-handle">
   <span class="handle-music">&#9835;</span>
   <span class="handle-text">${handle}</span>
-</div>
-
-<div class="brand-shell-keyword">
-  <span>${escapeHtml(domain)}</span>
 </div>
 
 ${VIGNETTE_HTML}
@@ -155,7 +155,7 @@ ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}`.trim();
 
       const scrollContent = bgImageRelPath
         ? `<div class="mockup-scroll-track"><img src="${escapeHtml(bgImageRelPath)}" class="mockup-scroll-img" alt="Web Preview" /></div>`
-        : `<div class="mockup-code-screen"><div class="mockup-code-content">&gt; ${escapeHtml(headline)}<br/><span style="color:#00f0ff;">// ${escapeHtml(subhead || "Tin tức công nghệ")}</span></div></div>`;
+        : `<div class="mockup-code-screen"><div class="mockup-code-content">&gt; ${escapeHtml(headline)}<br/><span style="color:#00f0ff;">// ${escapeHtml(subhead || "Dự án công nghệ")}</span></div></div>`;
 
       midInner = renderMockupLaptop(
         domain,
@@ -171,7 +171,7 @@ ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}`.trim();
       topTierHtml = `
 <div class="tier-top-badge">
   <span class="badge-icon">📊</span>
-  <span class="badge-text">SỐ LIỆU ĐỘT PHÁ</span>
+  <span class="badge-text">ĐỘT PHÁ CÔNG NGHỆ</span>
 </div>
 <h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.label)}</h1>`.trim();
 
@@ -232,15 +232,17 @@ ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}`.trim();
 
       midInner = `
 <div class="layout-comparison">
-  <div class="cmp-card cmp-left color-${lColor}">
-    <div class="cmp-label">${escapeHtml(td.left.label)}</div>
-    <div class="cmp-value">${escapeHtml(td.left.value)}</div>
-  </div>
-  <div class="cmp-vs">VS</div>
-  <div class="cmp-card cmp-right color-${rColor}${winnerClass}">
-    <div class="cmp-label">${escapeHtml(td.right.label)}</div>
-    <div class="cmp-value">${escapeHtml(td.right.value)}</div>
-    ${td.right.winner ? '<div class="cmp-winner-badge">WINNER</div>' : ""}
+  <div class="cmp-cards-container">
+    <div class="cmp-card cmp-left color-${lColor}">
+      <div class="cmp-label">${escapeHtml(td.left.label)}</div>
+      <div class="cmp-value">${escapeHtml(td.left.value)}</div>
+    </div>
+    <div class="cmp-vs">VS</div>
+    <div class="cmp-card cmp-right color-${rColor}${winnerClass}">
+      <div class="cmp-label">${escapeHtml(td.right.label)}</div>
+      <div class="cmp-value">${escapeHtml(td.right.value)}</div>
+      ${td.right.winner ? '<div class="cmp-winner-badge">WINNER</div>' : ""}
+    </div>
   </div>
 </div>`.trim();
       break;
@@ -252,16 +254,16 @@ ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}`.trim();
       topTierHtml = `
 <div class="tier-top-badge">
   <span class="badge-icon">💡</span>
-  <span class="badge-text">${td.tag ? escapeHtml(td.tag) : "TIÊU ĐIỂM CHÚ Ý"}</span>
+  <span class="badge-text">ĐÁNH GIÁ CHUYÊN MÔN</span>
 </div>
-<h1 class="tier-top-headline shimmer-sweep-target">${td.tag ? escapeHtml(td.tag) : "ĐIỂM NHẤN CÔNG NGHỆ"}</h1>`.trim();
+<h1 class="tier-top-headline shimmer-sweep-target">${td.tag ? escapeHtml(td.tag) : "GÓC NHÌN CHUYÊN GIA"}</h1>`.trim();
 
       midInner = `
 <div class="layout-callout">
   <div class="callout-card">
     <div class="callout-quote-icon">&ldquo;</div>
-    ${tag}
     <div class="callout-statement">${escapeHtml(td.statement)}</div>
+    ${tag}
   </div>
 </div>`.trim();
       break;
@@ -272,8 +274,8 @@ ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}`.trim();
       const ttCard = renderTiktokCard(tiktok, tiktokAvatarRelPath);
       topTierHtml = `
 <div class="tier-top-badge">
-  <span class="badge-icon">🔔</span>
-  <span class="badge-text">THEO DÕI NGAY</span>
+  <span class="badge-icon">🔱</span>
+  <span class="badge-text">THEO DÕI KÊNH</span>
 </div>
 <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>`.trim();
 

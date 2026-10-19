@@ -31,7 +31,8 @@ export async function generateScriptFromArticle(
         provider,
         voiceId,
       });
-      const validated = ScriptSchema.parse(geminiScript);
+      const sanitized = sanitizeScriptData(geminiScript);
+      const validated = ScriptSchema.parse(sanitized);
       log.info(`Gemini generated valid script with ${validated.scenes.length} scenes.`);
       return validated;
     } catch (err) {
@@ -42,7 +43,58 @@ export async function generateScriptFromArticle(
   // Built-in intelligent generator (offline fallback)
   log.info("Using built-in intelligent script synthesizer...");
   const script = synthesizeFallbackScript(article, { channel, provider, voiceId });
-  return ScriptSchema.parse(script);
+  const sanitizedFallback = sanitizeScriptData(script);
+  return ScriptSchema.parse(sanitizedFallback);
+}
+
+/**
+ * Sanitizes templateData string fields to ensure strict adherence to Zod schema limits.
+ */
+export function sanitizeScriptData(data: any): any {
+  if (!data || typeof data !== "object") return data;
+  if (data.metadata) {
+    if (data.metadata.title) data.metadata.title = String(data.metadata.title).slice(0, 80);
+    if (data.metadata.channel) data.metadata.channel = String(data.metadata.channel).slice(0, 40);
+  }
+  if (Array.isArray(data.scenes)) {
+    data.scenes = data.scenes.map((scene: any) => {
+      if (!scene || typeof scene !== "object") return scene;
+      const td = scene.templateData;
+      if (td && typeof td === "object") {
+        if (td.template === "hook") {
+          if (td.headline) td.headline = String(td.headline).slice(0, 40);
+          if (td.subhead) td.subhead = String(td.subhead).slice(0, 40);
+        } else if (td.template === "stat-hero") {
+          if (td.value) td.value = String(td.value).slice(0, 20);
+          if (td.label) td.label = String(td.label).slice(0, 40);
+          if (td.context) td.context = String(td.context).slice(0, 50);
+        } else if (td.template === "feature-list") {
+          if (td.title) td.title = String(td.title).slice(0, 40);
+          if (Array.isArray(td.bullets)) {
+            td.bullets = td.bullets.map((b: any) => String(b).slice(0, 50)).slice(0, 4);
+          }
+        } else if (td.template === "comparison") {
+          if (td.left) {
+            if (td.left.label) td.left.label = String(td.left.label).slice(0, 30);
+            if (td.left.value) td.left.value = String(td.left.value).slice(0, 20);
+          }
+          if (td.right) {
+            if (td.right.label) td.right.label = String(td.right.label).slice(0, 30);
+            if (td.right.value) td.right.value = String(td.right.value).slice(0, 20);
+          }
+        } else if (td.template === "callout") {
+          if (td.statement) td.statement = String(td.statement).slice(0, 80);
+          if (td.tag) td.tag = String(td.tag).slice(0, 20);
+        } else if (td.template === "outro") {
+          if (td.ctaTop) td.ctaTop = String(td.ctaTop).slice(0, 30);
+          if (td.channelName) td.channelName = String(td.channelName).slice(0, 30);
+          if (td.source) td.source = String(td.source).slice(0, 40);
+        }
+      }
+      return scene;
+    });
+  }
+  return data;
 }
 
 async function callGeminiApi(
@@ -51,25 +103,69 @@ async function callGeminiApi(
   meta: { channel: string; provider: string; voiceId: string }
 ): Promise<unknown> {
   const prompt = `
-Bạn là chuyên gia biên tập video ngắn công nghệ cho TikTok/Reels/Shorts tiếng Việt.
-Hãy tạo một kịch bản video ngắn (9:16, 5 cảnh) từ bài viết sau:
+Bạn là Đạo diễn & Biên kịch Video Triệu View chuyên về Công nghệ & Lập trình cho TikTok / Reels / Shorts.
+Nhiệm vụ: Tạo một kịch bản video dọc 9:16 (tổng thời lượng giọng đọc khoảng 40 - 55 giây) cực kỳ cuốn hút, giữ chân người xem từ giây đầu tiên, dựa trên tài liệu sau:
 
 TIÊU ĐỀ: ${article.title}
 DOMAIN: ${article.domain}
-NỘI DUNG:
-${article.content.slice(0, 2000)}
+NỘI DUNG CHI TIẾT DỰ ÁN / BÀI VIẾT:
+${article.content.slice(0, 3500)}
 
-QUY TẮC BẮT BUỘC CHO voiceText (ĐỌC BỞI TTS TIẾNG VIỆT):
-1. Đọc văn nói tự nhiên, lôi cuốn, không dùng emoji, không dùng markdown.
-2. PHIÊN ÂM TOÀN BỘ SỐ VÀ KÝ HIỆU trong voiceText:
-   - "GPT 5.5" -> "GPT năm chấm năm"
-   - "82.7%" -> "tám mươi hai phẩy bảy phần trăm"
-   - "iPhone 17" -> "iPhone mười bảy"
-   - "200MP" -> "hai trăm megapixel"
-   - "5000mAh" -> "năm nghìn miliampe giờ"
-   - "21 triệu đồng" -> "hai mươi mốt triệu đồng"
-   - "AI" -> "ây ai"
-3. Kết thúc mỗi câu trong voiceText bằng dấu chấm hoặc dấu chấm hỏi.
+════════════════════════════════════════════════════════════════════════════
+🎯 CHIẾN LƯỢC NỘI DUNG VIRAL BẮT BUỘC:
+════════════════════════════════════════════════════════════════════════════
+1. CẢNH HOOK (0 - 8 giây) - QUYẾT ĐỊNH 90% RETENTION:
+   - TUYỆT ĐỐI KHÔNG mở đầu nhạt nhẽo kiểu "Hôm nay chúng ta cùng khám phá..." hoặc "Đây là dự án...".
+   - BẮT ĐẦU BẰNG NỖI ĐAU CẤP BÁCH hoặc CÂU HỎI KÍCH THÍCH hoặc TUYÊN BỐ ĐỘT PHÁ:
+     Ví dụ: "Máy chủ web của bạn có thể bị tấn công xâm nhập chỉ trong ba mươi giây mà bạn không hề hay biết! Nhưng công cụ nguồn mở này vừa ra mắt để giải quyết triệt để vấn đề đó!"
+   - headline: Giật tít cực mạnh, viết hoa từ khóa quan trọng (tối đa 35 ký tự).
+   - subhead: Giải thích ngắn gọn giá trị bùng nổ (tối đa 35 ký tự).
+   - voiceText: 2 câu (khoảng 22 - 32 từ).
+
+2. CẢNH BODY-1 (8 - 18 giây) - ĐỘT PHÁ CÔNG NGHỆ / SỨC MẠNH CỐT LÕI (template: stat-hero):
+   - Nêu bật công nghệ độc đáo nhất hoặc giải pháp thông minh (Ví dụ: AI LLM, Kill Chain, Zero-Day, Real-Time...).
+   - value: Từ khóa hoặc con số to khổng lồ (Ví dụ: "AI LLM", "KILL CHAIN", "24/7", "REAL-TIME", "0-DAY").
+   - label: Định danh sức mạnh (tối đa 35 ký tự).
+   - context: Bối cảnh giải pháp (tối đa 45 ký tự).
+   - voiceText: 2 - 3 câu giải thích tại sao công nghệ này lại thay đổi cuộc chơi (25 - 35 từ).
+
+3. CẢNH BODY-2 (18 - 30 giây) - 3 TÍNH NĂNG ĐẮT GIÁ NHẤT (template: feature-list):
+   - title: Tiêu đề mạnh mẽ (tối đa 35 ký tự).
+   - bullets: Đúng 3 gạch đầu dòng rõ ràng, sắc nét, mỗi dòng từ 5 - 8 từ (tối đa 45 ký tự mỗi dòng).
+   - voiceText: Đọc diễn giải 3 tính năng một cách tự nhiên, mạch lạc, hào hứng (30 - 40 từ).
+
+4. CẢNH BODY-3 (30 - 42 giây) - TẦM ẢNH HƯỞNG & ĐÁNH GIÁ CHUYÊN MÔN (template: callout):
+   - statement: Nhận định sắc bén, khẳng định vị thế dự án / bài viết (tối đa 70 ký tự).
+   - tag: Nhãn chứng nhận (Ví dụ: "Đột phá bảo mật", "Must-Have", "Đánh giá an ninh", tối đa 18 ký tự).
+   - voiceText: Lời bình luận chuyên sâu, truyền cảm hứng cho lập trình viên và kỹ sư (25 - 35 từ).
+
+5. CẢNH OUTRO (42 - 50 giây) - KÊU GỌI HÀNH ĐỘNG DỨT KHOÁT (template: outro):
+   - ctaTop: "Theo dõi ngay"
+   - channelName: "${escapeJson(meta.channel)}"
+   - source: "${escapeJson(article.domain)}"
+   - voiceText: Lời kêu gọi follow kênh tự nhiên, dứt khoát để không bỏ lỡ công nghệ mới mỗi ngày (18 - 25 từ).
+
+════════════════════════════════════════════════════════════════════════════
+🔊 QUY TẮC NGỮ ÂM CHO voiceText (ĐỌC BỞI TTS TIẾNG VIỆT):
+════════════════════════════════════════════════════════════════════════════
+- Đọc văn nói tự nhiên, truyền cảm, dứt khoát. KHÔNG dùng emoji, markdown, bullet point trong voiceText.
+- PHIÊN ÂM TOÀN BỘ TỪ TIẾNG ANH & THUẬT NGỮ CHUYÊN NGÀNH sang âm đọc tiếng Việt chuẩn:
+  • "AI" -> "ây ai"
+  • "LLM" -> "eo eo em"
+  • "SecMon" -> "Séc Mon"
+  • "GitHub" -> "Gít húp"
+  • "Python" -> "Pi thon"
+  • "Nginx" -> "en gin ích"
+  • "Apache" -> "A pa che"
+  • "Kill Chain" -> "Kin Chên"
+  • "Web server" -> "oét xơ vơ"
+  • "Log" -> "lốc"
+  • "Incident Response" -> "phản ứng sự cố"
+- PHIÊN ÂM TOÀN BỘ SỐ VÀ KÝ HIỆU:
+  • "30s" -> "ba mươi giây"
+  • "100%" -> "một trăm phần trăm"
+  • "24/7" -> "hai mươi bốn trên bảy"
+- Kết thúc mỗi câu trong voiceText bằng dấu chấm hoặc dấu chấm hỏi.
 
 CẤU TRÚC JSON PHẢI TRẢ VỀ CHÍNH XÁC:
 {
@@ -136,7 +232,7 @@ CẤU TRÚC JSON PHẢI TRẢ VỀ CHÍNH XÁC:
     {
       "id": "outro",
       "type": "outro",
-      "voiceText": "Theo dõi ${escapeJson(meta.channel)} để xem bản tin mới mỗi ngày.",
+      "voiceText": "Theo dõi ${escapeJson(meta.channel)} để xem những công nghệ đột phá mỗi ngày.",
       "templateData": {
         "template": "outro",
         "ctaTop": "Theo dõi ngay",
@@ -208,14 +304,52 @@ export function synthesizeFallbackScript(
     const rawRepoName = repoParts[1] || article.title.split(/[:\-–|]/)[0].trim();
     const repoName = rawRepoName.slice(0, 25);
 
+    const isSecurity = /secmon|security|attack|incident|monitor|bảo mật|an ninh|firewall/i.test(article.url + article.title + article.content);
+    
     // Extract stars & language if present
     const starsMatch = article.content.match(/Số sao:\s*(\d+)/i) || article.content.match(/(\d+)\s*stars/i);
     const starsNum = starsMatch ? parseInt(starsMatch[1], 10) : 0;
-    const starsDisplay = starsNum > 1000 ? `${Math.round(starsNum / 1000)}K+ ⭐` : starsNum > 0 ? `${starsNum} ⭐` : "TOP 1 ⭐";
-    const starsSpoken = starsNum > 1000 ? `${Math.round(starsNum / 1000)} nghìn lượt gắn sao` : "hàng đầu thế giới";
+    
+    let starsDisplay = "TOP 1 ⚡";
+    let starsSpoken = "công nghệ đột phá hàng đầu";
+    let heroLabel = "Đột phá công nghệ";
+
+    if (isSecurity) {
+      starsDisplay = "AI SEC 🛡️";
+      starsSpoken = "hệ thống giám sát an ninh và phản ứng sự cố tự động";
+      heroLabel = "An ninh máy chủ Web";
+    } else if (starsNum > 1000) {
+      starsDisplay = `${Math.round(starsNum / 1000)}K+ ⭐`;
+      starsSpoken = `${Math.round(starsNum / 1000)} nghìn lượt gắn sao trên Gít húp`;
+      heroLabel = "Cộng đồng lập trình";
+    }
 
     const langMatch = article.content.match(/Ngôn ngữ chính:\s*([^\n]+)/i);
-    const mainLang = (langMatch?.[1] || "JavaScript").trim();
+    const mainLang = (langMatch?.[1] || "Python").trim();
+
+    const hookVoice = isSecurity
+      ? `Máy chủ oét của bạn có thể bị tấn công xâm nhập chỉ trong ba mươi giây mà không hề hay biết! Hãy cùng khám phá ngay giải pháp an ninh nguồn mở ${repoName}!`
+      : `Nếu bạn là một lập trình viên thực thụ, đây là dự án mã nguồn mở cực kỳ đột phá mà bạn không thể bỏ qua: ${repoName}!`;
+
+    const body1Voice = isSecurity
+      ? `Dự án mang đến ${starsSpoken}, giúp tương quan chuỗi tấn công mạng và giải thích cảnh báo bằng trí tuệ nhân tạo.`
+      : `Dự án được đánh giá là ${starsSpoken}, trở thành nền tảng lập trình mã nguồn mở vô cùng ấn tượng.`;
+
+    const body2Bullets = isSecurity
+      ? [
+          "Giám sát máy chủ Apache và Nginx",
+          "Tương quan chuỗi tấn công mạng",
+          "Phản ứng sự cố tức thì với AI",
+        ]
+      : [
+          `Ngôn ngữ tối ưu: ${mainLang}`,
+          "Kiến trúc module hóa hiện đại",
+          "Hiệu năng cao và dễ dàng mở rộng",
+        ];
+
+    const body3Statement = isSecurity
+      ? "Hệ thống an ninh máy chủ web phản ứng sự cố thông minh."
+      : "Giải pháp mã nguồn mở định hình tương lai phần mềm.";
 
     return {
       version: "1.0",
@@ -237,11 +371,11 @@ export function synthesizeFallbackScript(
         {
           id: "hook",
           type: "hook",
-          voiceText: convertNumbersToWordsVietnamese(`Khám phá dự án mã nguồn mở cực hot trên GitHub: ${repoName} của ${ownerName}!`),
+          voiceText: convertNumbersToWordsVietnamese(hookVoice),
           templateData: {
             template: "hook",
             headline: repoName,
-            subhead: `Dự án GitHub Hot bởi ${ownerName}`,
+            subhead: isSecurity ? "Hệ thống an ninh máy chủ Web" : `Dự án GitHub Hot bởi ${ownerName}`,
             bgSrc: article.ogImage ? "$source.image" : undefined,
             kenBurns: "zoom-in",
           },
@@ -249,37 +383,41 @@ export function synthesizeFallbackScript(
         {
           id: "body-1",
           type: "body",
-          voiceText: convertNumbersToWordsVietnamese(`Dự án đã cán mốc hơn ${starsSpoken}, trở thành nền tảng lập trình phổ biến hàng đầu thế giới.`),
+          voiceText: convertNumbersToWordsVietnamese(body1Voice),
           templateData: {
             template: "stat-hero",
             value: starsDisplay,
-            label: "Cộng đồng lập trình",
-            context: "Mã nguồn mở thịnh hành",
+            label: heroLabel,
+            context: isSecurity ? "Tương quan chuỗi tấn công tự động" : "Mã nguồn mở thịnh hành",
           },
         },
         {
           id: "body-2",
           type: "body",
-          voiceText: convertNumbersToWordsVietnamese(`Được phát triển chủ đạo bằng ${mainLang}, với kiến trúc thành phần linh hoạt và tối ưu hiệu suất cực cao.`),
+          voiceText: convertNumbersToWordsVietnamese(
+            isSecurity
+              ? "Hệ thống sở hữu ba tính năng then chốt: giám sát toàn diện máy chủ web, tương quan chuỗi tấn công, và phản ứng sự cố tức thì bằng trí tuệ nhân tạo."
+              : `Dự án sở hữu ba điểm sáng nổi bật: tối ưu với ngôn ngữ ${mainLang}, kiến trúc module hóa hiện đại, và hệ sinh thái mở rộng vô cùng mạnh mẽ.`
+          ),
           templateData: {
             template: "feature-list",
-            title: "Điểm sáng cốt lõi",
-            bullets: [
-              `Ngôn ngữ: ${mainLang}`,
-              "Kiến trúc Component hiện đại",
-              "Hệ sinh thái mở rộng mạnh mẽ",
-            ],
+            title: isSecurity ? "Tính năng bảo mật" : "Điểm sáng cốt lõi",
+            bullets: body2Bullets,
             icon: "spark",
           },
         },
         {
           id: "body-3",
           type: "body",
-          voiceText: convertNumbersToWordsVietnamese("Đây chắc chắn là công nghệ không thể thiếu đối với mọi lập trình viên trong năm nay."),
+          voiceText: convertNumbersToWordsVietnamese(
+            isSecurity
+              ? "Đây là giải pháp an ninh mạng đột phá giúp bảo vệ máy chủ web an toàn trước các đợt tấn công nguy hiểm trong năm nay."
+              : "Một dự án công nghệ mã nguồn mở rất đáng chú ý và mang lại giá trị thực chiến lớn cho các kỹ sư phần mềm."
+          ),
           templateData: {
             template: "callout",
-            statement: "Công nghệ nền tảng định hình tương lai phát triển phần mềm.",
-            tag: "Đánh giá chuyên môn",
+            statement: body3Statement,
+            tag: isSecurity ? "Bảo mật máy chủ" : "Đánh giá chuyên môn",
           },
         },
         {

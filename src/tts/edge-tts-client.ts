@@ -32,14 +32,20 @@ export class EdgeTtsClient implements TtsClient {
       return;
     }
 
-    // In production/CLI: Try Python edge-tts first (100% reliable on Windows & Linux)
-    try {
-      await this.synthesizeWithPython(text, audioOutPath, srtOutPath);
-      if (existsSync(audioOutPath) && statSync(audioOutPath).size > 1000) {
-        return;
+    // In production/CLI: Try Python edge-tts first (with retry)
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        await this.synthesizeWithPython(text, audioOutPath, srtOutPath);
+        if (existsSync(audioOutPath) && statSync(audioOutPath).size > 1000) {
+          return;
+        }
+      } catch (pyErr) {
+        if (attempt === 2) {
+          log.warn(`Python edge-tts gặp sự cố sau 2 lần thử (${(pyErr as Error).message}), chuyển sang Node fallback...`);
+        } else {
+          await new Promise((r) => setTimeout(r, 1000));
+        }
       }
-    } catch (pyErr) {
-      log.warn(`Python edge-tts gặp sự cố (${(pyErr as Error).message}), chuyển sang Node fallback...`);
     }
 
     // Fallback to Node
@@ -55,14 +61,11 @@ export class EdgeTtsClient implements TtsClient {
     audioOutPath: string,
     srtOutPath?: string,
   ): Promise<void> {
-    const tmpInput = join(tmpdir(), `edge_tts_in_${randomBytes(8).toString("hex")}.txt`);
-    await writeFile(tmpInput, text, "utf8");
-
     const voice = this.cfg.voice || "vi-VN-HoaiMyNeural";
     const args = [
       "-m", "edge_tts",
       "-v", voice,
-      "-f", tmpInput,
+      "--text", text,
       "--write-media", audioOutPath,
     ];
 
@@ -79,24 +82,21 @@ export class EdgeTtsClient implements TtsClient {
       args.push("--write-subtitles", srtOutPath);
     }
 
-    try {
-      await new Promise<void>((resolve, reject) => {
-        const proc = spawn("python", args, { stdio: ["ignore", "pipe", "pipe"] });
-        let stderr = "";
-        proc.stderr.on("data", (d) => {
-          stderr += d.toString();
-        });
-        proc.on("error", (err) => reject(err));
-        proc.on("close", (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`edge-tts process exited with code ${code}: ${stderr}`));
-        });
+    await new Promise<void>((resolve, reject) => {
+      const proc = spawn("python", args, {
+        stdio: ["ignore", "pipe", "pipe"],
+        env: { ...process.env, PYTHONUTF8: "1", PYTHONIOENCODING: "utf-8" },
       });
-    } finally {
-      if (existsSync(tmpInput)) {
-        await unlink(tmpInput).catch(() => {});
-      }
-    }
+      let stderr = "";
+      proc.stderr.on("data", (d) => {
+        stderr += d.toString();
+      });
+      proc.on("error", (err) => reject(err));
+      proc.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`edge-tts process exited with code ${code}: ${stderr}`));
+      });
+    });
   }
 
   private async synthesizeWithNode(
@@ -117,7 +117,7 @@ export class EdgeTtsClient implements TtsClient {
 
         let timer: ReturnType<typeof setTimeout> | undefined;
         const timeoutPromise = new Promise<never>((_, reject) => {
-          timer = setTimeout(() => reject(new Error("Edge TTS connection timeout")), 10000);
+          timer = setTimeout(() => reject(new Error("Edge TTS connection timeout")), 60000);
         });
 
         try {

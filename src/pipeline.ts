@@ -28,8 +28,9 @@ const OUTRO_HOLD_SEC = 3;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TPL_DIR = join(__dirname, "render", "templates");
-/** Path to the SFX library (relative to project root) */
-const SFX_DIR = join(__dirname, "..", "assets", "sfx");
+const SFX_DIR = existsSync(join(__dirname, "..", "SFX"))
+  ? join(__dirname, "..", "SFX")
+  : join(__dirname, "..", "assets", "sfx");
 
 const HYPERFRAMES_CONFIG = {
   $schema: "https://hyperframes.heygen.com/schema/hyperframes.json",
