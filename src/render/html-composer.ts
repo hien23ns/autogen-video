@@ -16,9 +16,9 @@ const VIGNETTE_HTML = `<div class="vignette"></div>`;
 
 // Default TikTok config (used if not passed)
 const DEFAULT_TIKTOK: TiktokConfig = {
-  displayName: "CườngIT",
-  handle: "@cuongit96",
-  followers: "2k followers",
+  displayName: "Code Suy 24h 🔱",
+  handle: "@codesuy24h",
+  followers: "2x followers",
 };
 
 export interface SceneAudio {
