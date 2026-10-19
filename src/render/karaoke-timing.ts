@@ -72,7 +72,7 @@ export function generateKaraokeWords(
  */
 export function groupKaraokeChunks(
   words: KaraokeWord[],
-  maxWordsPerChunk = 5,
+  maxWordsPerChunk = 4,
 ): KaraokeChunk[] {
   if (words.length === 0) return [];
 
@@ -107,7 +107,7 @@ export function groupKaraokeChunks(
  * Generate Karaoke HTML for a scene.
  */
 export function renderKaraokeHtml(options: GenerateKaraokeOptions): string {
-  const { sceneId, text, sceneStartSec, durationSec, maxWordsPerChunk = 5 } = options;
+  const { sceneId, text, sceneStartSec, durationSec, maxWordsPerChunk = 4 } = options;
   const words = generateKaraokeWords(text, sceneStartSec, durationSec);
   const chunks = groupKaraokeChunks(words, maxWordsPerChunk);
 

@@ -112,15 +112,19 @@ NỘI DUNG CHI TIẾT DỰ ÁN / BÀI VIẾT:
 ${article.content.slice(0, 3500)}
 
 ════════════════════════════════════════════════════════════════════════════
-🎯 CHIẾN LƯỢC NỘI DUNG VIRAL BẮT BUỘC:
+🎯 CHIẾN LƯỢC NỘI DUNG VIRAL BẮT BUỘC (PHONG CÁCH TIKTOK TRIỆU VIEW):
 ════════════════════════════════════════════════════════════════════════════
-1. CẢNH HOOK (0 - 8 giây) - QUYẾT ĐỊNH 90% RETENTION:
-   - TUYỆT ĐỐI KHÔNG mở đầu nhạt nhẽo kiểu "Hôm nay chúng ta cùng khám phá..." hoặc "Đây là dự án...".
-   - BẮT ĐẦU BẰNG NỖI ĐAU CẤP BÁCH hoặc CÂU HỎI KÍCH THÍCH hoặc TUYÊN BỐ ĐỘT PHÁ:
-     Ví dụ: "Máy chủ web của bạn có thể bị tấn công xâm nhập chỉ trong ba mươi giây mà bạn không hề hay biết! Nhưng công cụ nguồn mở này vừa ra mắt để giải quyết triệt để vấn đề đó!"
-   - headline: Giật tít cực mạnh, viết hoa từ khóa quan trọng (tối đa 35 ký tự).
-   - subhead: Giải thích ngắn gọn giá trị bùng nổ (tối đa 35 ký tự).
-   - voiceText: 2 câu (khoảng 22 - 32 từ).
+1. CẢNH HOOK (0 - 8 giây) - QUYẾT ĐỊNH 90% TỶ LỆ GIỮ CHÂN (RETENTION):
+   - BẮT BUỘC ÁP DỤNG KỸ THUẬT NGẮT DÒNG CHÚ Ý (Pattern Interrupt) NGAY TỪ GIÂY THỨ NHẤT!
+   - TUYỆT ĐỐI CẤM mở đầu nhàm chán như "Hôm nay chúng ta...", "Đây là dự án...", "Chào mừng các bạn...".
+   - Hãy chọn 1 trong 4 công thức Hook giật gân, cuốn hút tột đỉnh sau:
+     • [Cảnh báo sốc]: "Dừng lại ba giây! Nếu bạn đang làm dev hay vận hành máy chủ, coi chừng mất việc chỉ vì một lỗ hổng sơ đẳng này! Nhưng may thay, siêu công cụ nguồn mở này vừa xuất hiện..."
+     • [Bí mật không tưởng]: "Bạn có tin được không? Chỉ với một công cụ mã nguồn mở hoàn toàn miễn phí này, bạn có thể giải quyết dứt điểm vấn đề nhức nhối mà các giải pháp nghìn đô cũng phải chào thua!"
+     • [Chao đảo giới công nghệ]: "Cả cộng đồng công nghệ đang phát sốt vì dự án mã nguồn mở vừa ra mắt! Thứ này thông minh đến mức sẽ thay đổi hoàn toàn cách chúng ta lập trình và bảo mật..."
+     • [Nỗi đau nhức nhối]: "Bạn đã bao giờ thức trắng đêm để cứu hỏa sự cố chưa? Đừng lãng phí thanh xuân nữa, vì siêu vũ khí mã nguồn mở này sẽ tự động gánh hết cho bạn!"
+   - headline: Giật tít cực sốc, viết hoa toàn bộ, dùng từ kích thích tò mò (tối đa 35 ký tự).
+   - subhead: Khẳng định sức mạnh giải pháp (tối đa 35 ký tự).
+   - voiceText: 2 câu dồn dập, sắc bén, kích thích adrenaline (24 - 32 từ).
 
 2. CẢNH BODY-1 (8 - 18 giây) - ĐỘT PHÁ CÔNG NGHỆ / SỨC MẠNH CỐT LÕI (template: stat-hero):
    - Nêu bật công nghệ độc đáo nhất hoặc giải pháp thông minh (Ví dụ: AI LLM, Kill Chain, Zero-Day, Real-Time...).
@@ -328,8 +332,8 @@ export function synthesizeFallbackScript(
     const mainLang = (langMatch?.[1] || "Python").trim();
 
     const hookVoice = isSecurity
-      ? `Máy chủ oét của bạn có thể bị tấn công xâm nhập chỉ trong ba mươi giây mà không hề hay biết! Hãy cùng khám phá ngay giải pháp an ninh nguồn mở ${repoName}!`
-      : `Nếu bạn là một lập trình viên thực thụ, đây là dự án mã nguồn mở cực kỳ đột phá mà bạn không thể bỏ qua: ${repoName}!`;
+      ? `Dừng lại ba giây! Máy chủ oét của bạn có thể bị thâm nhập chỉ trong ba mươi giây mà không hề hay biết! Hãy cùng khám phá siêu vũ khí an ninh nguồn mở ${repoName}!`
+      : `Dừng lại ba giây! Đây là dự án mã nguồn mở cực đỉnh đang làm chao đảo giới công nghệ mà bạn nhất định phải biết: ${repoName}!`;
 
     const body1Voice = isSecurity
       ? `Dự án mang đến ${starsSpoken}, giúp tương quan chuỗi tấn công mạng và giải thích cảnh báo bằng trí tuệ nhân tạo.`
@@ -468,7 +472,7 @@ export function synthesizeFallbackScript(
       {
         id: "hook",
         type: "hook",
-        voiceText: convertNumbersToWordsVietnamese(`${cleanTitle} vừa chính thức ra mắt, mang đến nhiều thay đổi bất ngờ.`),
+        voiceText: convertNumbersToWordsVietnamese(`Dừng lại ba giây! ${cleanTitle} vừa chính thức ra mắt và đang làm chao đảo giới công nghệ với hàng loạt đột phá không tưởng!`),
         templateData: {
           template: "hook",
           headline: cleanTitle,

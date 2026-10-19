@@ -178,6 +178,98 @@ Sau khi chạy xong, video và toàn bộ tài nguyên sẽ được lưu tại:
 
 ---
 
+## 🤖 Tự Động Hóa 24/7: GitHub Actions + Make.com & Bot Telegram
+
+Bạn hoàn toàn có thể vận hành hệ thống tạo video tự động **24/7 không cần bật máy tính**, hoàn toàn miễn phí thông qua GitHub Actions và Make.com. Người dùng chỉ cần gửi link vào Telegram, sau 2 - 3 phút video sẽ tự động bay về Telegram chat!
+
+```
+[ Người Dùng Gửi Link ] 
+       │ 
+       ▼
+[ Bot Telegram / Make.com Webhook ] 
+       │ 
+       ▼ (Gửi repository_dispatch API)
+[ GitHub Actions Cloud Runner (Ubuntu) ] 
+       │ 1. Scrape nội dung & đọc README.md
+       │ 2. Gemini AI tạo kịch bản 3-Giây Hook bùng nổ
+       │ 3. Edge-TTS tạo giọng thuyết minh dồn dập
+       │ 4. Render video 9:16 phụ đề Kinetic & SFX
+       ▼ 
+[ Telegram Bot API: Gửi video.mp4 về lại người dùng! ]
+```
+
+---
+
+### PHƯƠNG ÁN 1: Điều Khiển Bằng Bot Telegram Trực Tiếp (Local / VPS)
+
+Nếu bạn muốn chạy bot trực tiếp trên máy hoặc máy chủ cá nhân:
+
+1. **Lấy Token Bot Telegram**:
+   - Chat với `@BotFather` trên Telegram, gõ lệnh `/newbot` để tạo bot và nhận `TELEGRAM_BOT_TOKEN`.
+   - Lấy Chat ID của bạn bằng cách chat `/start` với `@userinfobot`.
+
+2. **Cấu hình trong file `.env.local`**:
+   ```ini
+   TELEGRAM_BOT_TOKEN=77xxxxxxxx:AAExxxxxxxxxxxxxxxxxxxxx
+   # (Tùy chọn) Điền GITHUB_PAT nếu muốn bot ủy quyền cho GitHub Actions render thay vì chạy trên máy:
+   # GITHUB_PAT=ghp_xxxxxxxxxxxxxxxxxxxxxxxx
+   # GITHUB_REPO=hien23ns/autogen-video
+   ```
+
+3. **Khởi động Bot Telegram**:
+   ```bash
+   npm run bot
+   ```
+   > 💬 **Sử dụng**: Mở bot Telegram của bạn, gửi bất kỳ đường link bài viết hoặc link GitHub nào (hoặc gõ `/video <link> [cyberpunk|dark|light]`). Bot sẽ tự động tạo video và gửi file MP4 về cho bạn!
+
+---
+
+### PHƯƠNG ÁN 2: Thiết Lập Chạy 24/7 Miễn Phí Với Make.com + GitHub Actions
+
+#### Bước 1: Tạo GitHub Personal Access Token (PAT)
+1. Truy cập [GitHub Token Settings](https://github.com/settings/tokens).
+2. Nhấn **Generate new token (classic)**.
+3. Đặt tên (ví dụ: `MakeCom-Video-Trigger`) và tích chọn quyền:
+   - ✅ `repo` (Toàn quyền quản lý repo)
+   - ✅ `workflow` (Quyền chạy workflow)
+4. Nhấn **Generate token** và lưu lại chuỗi token này (bắt đầu bằng `ghp_...`).
+
+#### Bước 2: Thêm Secrets trên Repository GitHub
+1. Vào trang repo GitHub của bạn: `https://github.com/<tên-bạn>/autogen-video/settings/secrets/actions`
+2. Nhấn **New repository secret** và thêm 2 secret:
+   - Name: `GEMINI_API_KEY` | Value: *API key Gemini của bạn*
+   - Name: `TELEGRAM_BOT_TOKEN` | Value: *Token Bot Telegram lấy từ @BotFather*
+
+#### Bước 3: Cấu Hình Kịch Bản (Scenario) trên Make.com
+1. Tạo một kịch bản mới trên [Make.com](https://www.make.com/).
+2. **Module 1**: Chọn app **Telegram Bot** -> Action **Watch Updates**:
+   - Kết nối với Telegram Bot Token của bạn.
+3. **Module 2**: Chọn app **HTTP** -> Action **Make a request**:
+   - **URL**: `https://api.github.com/repos/hien23ns/autogen-video/dispatches`
+   - **Method**: `POST`
+   - **Headers**:
+     - `Authorization`: `Bearer <GITHUB_PAT_CỦA_BẠN>`
+     - `Accept`: `application/vnd.github.v3+json`
+     - `Content-Type`: `application/json`
+     - `User-Agent`: `Make-Automation`
+   - **Body Type**: `Raw`
+   - **Content Type**: `JSON (application/json)`
+   - **Request content**:
+     ```json
+     {
+       "event_type": "create_video",
+       "client_payload": {
+         "url": "{{1.message.text}}",
+         "chat_id": "{{1.message.chat.id}}",
+         "theme": "cyberpunk"
+       }
+     }
+     ```
+4. Bật kịch bản sang chế độ **ON**.
+5. Bây giờ, bất kỳ khi nào bạn hoặc người dùng nhắn tin đường link bài báo/GitHub vào Bot Telegram, Make.com sẽ tự động kích hoạt máy ảo GitHub Actions tạo video và Telegram Bot sẽ gửi video hoàn tất về ngay trong cuộc trò chuyện!
+
+---
+
 ## 🧪 Kiểm Thử (Unit Tests)
 
 Dự án đi kèm bộ test toàn diện bảo đảm hệ thống luôn hoạt động ổn định:

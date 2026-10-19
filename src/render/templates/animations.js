@@ -81,12 +81,24 @@ window.__timelines["news-video"] = tl;
     words.forEach((word) => {
       const wStart = parseFloat(word.dataset.kStart);
       const wEnd = parseFloat(word.dataset.kEnd);
-      // Initial state
-      tl.set(word, { opacity: 0.65, scale: 1.0 }, 0);
-      // Highlight on read
-      tl.to(word, { opacity: 1, scale: 1.18, duration: 0.08 }, wStart);
-      // Finish highlight
-      tl.to(word, { scale: 1.0, duration: 0.08 }, wEnd);
+      // Initial state: subtle dimmed
+      tl.set(word, { opacity: 0.55, scale: 1.0 }, 0);
+      // Highlight on read: kinetic bounce pop-in with vibrant lemon gold
+      tl.to(word, {
+        opacity: 1,
+        scale: 1.26,
+        color: "#ffe600",
+        duration: 0.1,
+        ease: "back.out(2)",
+      }, wStart);
+      // Finish highlight: settle into crisp solid white
+      tl.to(word, {
+        scale: 1.0,
+        color: "#ffffff",
+        opacity: 1,
+        duration: 0.08,
+        ease: "power1.inOut",
+      }, wEnd);
     });
 
     // ── Template Specific Inner Animations ────────────────────────────────

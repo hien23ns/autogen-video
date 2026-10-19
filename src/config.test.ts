@@ -46,7 +46,7 @@ describe("loadConfig", () => {
       const cfg = loadConfig();
       expect(cfg.ttsProvider).toBe("edge-tts");
       expect(cfg.edgeTtsVoice).toBe("vi-VN-HoaiMyNeural");
-      expect(cfg.edgeTtsRate).toBe("+0%");
+      expect(cfg.edgeTtsRate).toBe("+16%");
       expect(cfg.edgeTtsPitch).toBe("+0Hz");
       expect(cfg.edgeTtsVolume).toBe("+0%");
       expect(cfg.ttsConcurrency).toBe(1);

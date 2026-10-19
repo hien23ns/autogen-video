@@ -906,14 +906,15 @@ html, body {
 
 .karaoke-display-box {
   width: 100%;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1.5px solid rgba(255, 255, 255, 0.18);
-  border-radius: 28px;
-  padding: 24px 32px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  min-height: 140px;
+  max-width: 980px;
+  background: rgba(15, 23, 42, 0.68);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 40px;
+  padding: 24px 36px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  min-height: 125px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -940,40 +941,50 @@ html, body {
 
 .k-chunk-inner {
   font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
-  font-size: 40px;
-  font-weight: 800;
+  font-size: 52px;
+  font-weight: 900;
   line-height: 1.35;
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.65);
   letter-spacing: -0.01em;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 8px 12px;
+  gap: 10px 16px;
 }
 
 /* Individual Karaoke Word */
 .k-word {
   display: inline-block;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 50px;
+  font-weight: 900;
   transition: color 0.12s ease, transform 0.12s ease, text-shadow 0.12s ease;
   transform-origin: center bottom;
-  padding: 2px 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.95);
+  -webkit-text-stroke: 1.2px rgba(0, 0, 0, 0.85);
 }
 
 .k-word.k-active {
-  color: #fbbf24;
-  transform: scale(1.15);
-  text-shadow: 0 0 20px rgba(251, 191, 36, 0.9), 0 0 35px rgba(245, 158, 11, 0.7);
-  background: rgba(251, 191, 36, 0.15);
-  border-radius: 8px;
+  color: #ffe600;
+  transform: scale(1.26);
+  text-shadow: 0 0 25px #ffe600, 0 0 50px rgba(245, 158, 11, 0.8);
+  background: linear-gradient(135deg, rgba(255, 230, 0, 0.35), rgba(245, 158, 11, 0.25));
+  border: 2px solid #ffe600;
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(255, 230, 0, 0.55), inset 0 0 10px rgba(255, 230, 0, 0.25);
 }
 
 .k-word.k-done {
   color: #ffffff;
   transform: scale(1.0);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  opacity: 1;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 /* ── DYNAMIC MESH GRADIENT BACKGROUND ──────────────────────── */

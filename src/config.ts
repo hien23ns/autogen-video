@@ -143,7 +143,7 @@ export function loadConfig(): Config {
     ttsProvider: provider,
     geminiApiKey: process.env.GEMINI_API_KEY,
     edgeTtsVoice: process.env.EDGE_TTS_VOICE ?? "vi-VN-HoaiMyNeural",
-    edgeTtsRate: process.env.EDGE_TTS_RATE ?? "+0%",
+    edgeTtsRate: process.env.EDGE_TTS_RATE ?? "+16%",
     edgeTtsPitch: process.env.EDGE_TTS_PITCH ?? "+0Hz",
     edgeTtsVolume: process.env.EDGE_TTS_VOLUME ?? "+0%",
     lucylabApiKey: process.env.VIETNAMESE_API_KEY,
