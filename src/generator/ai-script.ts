@@ -150,21 +150,43 @@ CẤU TRÚC JSON PHẢI TRẢ VỀ CHÍNH XÁC:
 Chỉ trả về duy nhất chuỗi JSON hợp lệ, không bọc trong markdown \`\`\`json.
 `;
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-  const response = await axios.post(
-    endpoint,
-    {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.2,
-      },
-    },
-    { timeout: 20000 }
-  );
+  const candidateModels = [
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.7-flash",
+    "gemini-3.8-flash",
+    "gemini-flash-latest",
+  ];
 
-  const rawJson = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawJson) throw new Error("Empty response from Gemini API");
+  let rawJson: string | undefined;
+  let lastError: any;
+
+  for (const model of candidateModels) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await axios.post(
+        endpoint,
+        {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
+          },
+        },
+        { timeout: 30000 }
+      );
+      rawJson = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawJson) {
+        log.info(`Gemini API succeeded using model ${model}`);
+        break;
+      }
+    } catch (err: any) {
+      lastError = err;
+      log.warn(`Gemini model ${model} failed (${err.response?.status || err.message}), trying next...`);
+    }
+  }
+
+  if (!rawJson) throw lastError || new Error("Empty response from Gemini API");
   return JSON.parse(rawJson);
 }
 

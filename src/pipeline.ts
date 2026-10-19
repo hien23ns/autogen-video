@@ -9,7 +9,7 @@ import { createTtsClient } from "./tts/tts-client.js";
 import { fetchImage } from "./assets/image-fetcher.js";
 import { getDurationSec, concatWithSilence, mixSfxOntoVoice, type SfxMixSpec } from "./assets/audio-tools.js";
 import { indexSfxLibrary, pickSfxForScene, defaultPlayback } from "./assets/sfx-selector.js";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { composeHtml } from "./render/html-composer.js";
 import { renderWithHyperframes } from "./render/hyperframes-runner.js";
 import { log } from "./utils/logger.js";
@@ -229,6 +229,16 @@ export async function runPipeline(input: string | PipelineRunOptions): Promise<P
     for (const ext of ["jpg", "jpeg", "png", "webp"]) {
       const p = join(baseDir, `avatar.${ext}`);
       if (existsSync(p)) return p;
+    }
+    // Search for any user-provided image inside assets/ (e.g. codesuy24h.png)
+    if (existsSync(baseDir)) {
+      const files = readdirSync(baseDir);
+      for (const file of files) {
+        const full = join(baseDir, file);
+        if (statSync(full).isFile() && /\.(png|jpg|jpeg|webp)$/i.test(file)) {
+          return full;
+        }
+      }
     }
     throw new Error(`No bundled avatar found. Place an image at assets/avatar.{jpg,png,webp}`);
   };
