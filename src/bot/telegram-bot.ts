@@ -8,7 +8,7 @@ import FormData from "form-data";
 import { scrapeUrl } from "../scraper/web-scraper.js";
 import { generateScriptFromArticle } from "../generator/ai-script.js";
 import { runPipeline } from "../pipeline.js";
-import { loadConfig, normalizeTheme } from "../config.js";
+import { loadConfig, normalizeTheme, type VideoTheme } from "../config.js";
 import { log } from "../utils/logger.js";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -23,7 +23,44 @@ if (!BOT_TOKEN) {
 
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
-async function sendMessage(chatId: number | string, text: string, parseMode: "Markdown" | "HTML" = "Markdown"): Promise<void> {
+const THEME_DESCRIPTIONS: Record<VideoTheme, { name: string; icon: string; desc: string }> = {
+  "cyberpunk": {
+    name: "Cyberpunk",
+    icon: "⚡",
+    desc: "Vàng chanh Neon + Cyan + Hồng Magenta (Mặc định siêu cuốn hút)",
+  },
+  "matrix-code": {
+    name: "Matrix Code",
+    icon: "💻",
+    desc: "Terminal Hacker Đen Tuyền + Matrix Green (Chuẩn Developer & Bảo mật)",
+  },
+  "sunset-vibes": {
+    name: "Sunset Vibes",
+    icon: "🌅",
+    desc: "Synthwave Hoàng Hôn Tím + Cam Rực Rỡ + Vàng Ấm (Viral AI & UI/UX)",
+  },
+  "crimson-beast": {
+    name: "Crimson Beast",
+    icon: "🔥",
+    desc: "Obsidian Đỏ Lửa + Vàng Kim Hoàng Gia (Tin sốc, Drama, Zero-Day)",
+  },
+  "dark-neon": {
+    name: "Dark Neon",
+    icon: "🌌",
+    desc: "Xanh Đen Navy + Neon Blue + Tím Huyền Bí (Sang trọng, công nghệ)",
+  },
+  "light-pro": {
+    name: "Light Pro",
+    icon: "💼",
+    desc: "Trắng Bạc Thanh Lịch (Tin tức doanh nghiệp, tài chính, báo chí)",
+  },
+};
+
+async function sendMessage(
+  chatId: number | string,
+  text: string,
+  parseMode: "Markdown" | "HTML" = "Markdown"
+): Promise<void> {
   try {
     await axios.post(`${TELEGRAM_API}/sendMessage`, {
       chat_id: chatId,
@@ -60,10 +97,10 @@ async function sendVideo(chatId: number | string, videoPath: string, caption: st
 /**
  * Triggers GitHub Actions workflow via repository_dispatch API
  */
-async function triggerGitHubAction(url: string, chatId: number | string, theme = "cyberpunk"): Promise<boolean> {
+async function triggerGitHubAction(url: string, chatId: number | string, theme: VideoTheme = "cyberpunk"): Promise<boolean> {
   if (!GITHUB_PAT) return false;
   try {
-    log.info(`Gửi dispatch request tới GitHub Repo: ${GITHUB_REPO}...`);
+    log.info(`Gửi dispatch request tới GitHub Repo: ${GITHUB_REPO} (Theme: ${theme})...`);
     await axios.post(
       `https://api.github.com/repos/${GITHUB_REPO}/dispatches`,
       {
@@ -88,14 +125,43 @@ async function triggerGitHubAction(url: string, chatId: number | string, theme =
   }
 }
 
-async function handleGenerateVideo(chatId: number | string, url: string, themeStr?: string): Promise<void> {
-  const theme = themeStr ? normalizeTheme(themeStr) : "cyberpunk";
+/**
+ * Parses user message to extract URL and optional theme name
+ */
+function parseUserPrompt(text: string): { url: string; theme: VideoTheme } {
+  // Regex to extract URL
+  const urlMatch = text.match(/(https?:\/\/[^\s]+)/i);
+  const url = urlMatch ? urlMatch[1].trim() : "";
+
+  // Remaining text to detect theme
+  const remaining = text.replace(url, "").toLowerCase();
+
+  let theme: VideoTheme = "cyberpunk";
+  try {
+    if (/matrix|hacker|green/i.test(remaining)) theme = "matrix-code";
+    else if (/sunset|synthwave|purple/i.test(remaining)) theme = "sunset-vibes";
+    else if (/crimson|red|fire/i.test(remaining)) theme = "crimson-beast";
+    else if (/dark|navy/i.test(remaining)) theme = "dark-neon";
+    else if (/light|white/i.test(remaining)) theme = "light-pro";
+    else if (/cyber|cyberpunk/i.test(remaining)) theme = "cyberpunk";
+  } catch {
+    theme = "cyberpunk";
+  }
+
+  return { url, theme };
+}
+
+async function handleGenerateVideo(chatId: number | string, url: string, theme: VideoTheme = "cyberpunk"): Promise<void> {
+  const info = THEME_DESCRIPTIONS[theme];
 
   // Option 1: Trigger GitHub Actions runner nếu có GITHUB_PAT
   if (GITHUB_PAT) {
     await sendMessage(
       chatId,
-      `🚀 *Đã nhận lệnh tạo video 24/7!*\n\n🔗 *Nguồn:* \`${url}\`\n🎨 *Theme:* \`${theme}\`\n\n⚙️ Đang kích hoạt *GitHub Actions Cloud Runner* để render tự động. Video sẽ được gửi trực tiếp về đây sau khoảng 2 - 3 phút!`
+      `🚀 *Đã nhận lệnh tạo video 24/7!*\n\n` +
+      `🔗 *Nguồn:* \`${url}\`\n` +
+      `🎨 *Giao diện (${info.icon}):* \`${info.name}\` — _${info.desc}_\n\n` +
+      `⚙️ Đang kích hoạt *GitHub Actions Cloud Runner* để biên kịch & render tự động. Video sẽ được gửi về đây sau khoảng 2 - 3 phút!`
     );
     const ok = await triggerGitHubAction(url, chatId, theme);
     if (ok) return;
@@ -105,17 +171,20 @@ async function handleGenerateVideo(chatId: number | string, url: string, themeSt
   // Option 2: Render trực tiếp cục bộ
   await sendMessage(
     chatId,
-    `🎬 *Bắt đầu quy trình tạo video tự động (9:16 Vertical)*\n\n🔗 *URL:* \`${url}\`\n🎨 *Theme:* \`${theme}\`\n⏳ Vui lòng đợi trong giây lát...`
+    `🎬 *Bắt đầu quy trình tạo video tự động (9:16 Vertical)*\n\n` +
+    `🔗 *URL:* \`${url}\`\n` +
+    `🎨 *Theme:* ${info.icon} \`${info.name}\`\n` +
+    `⏳ Vui lòng đợi trong giây lát...`
   );
 
   const cfg = loadConfig();
   try {
     // 1. Scrape
-    await sendMessage(chatId, "🔍 *[1/4]* Đang cào dữ liệu và phân tích bài viết / repo...");
+    await sendMessage(chatId, "🔍 *[1/4]* Đang cào dữ liệu và phân tích nội dung...");
     const article = await scrapeUrl(url);
 
     // 2. AI Script
-    await sendMessage(chatId, "🧠 *[2/4]* Đang khởi tạo kịch bản 3-Giây Hook bùng nổ bằng Gemini Flash AI...");
+    await sendMessage(chatId, "🧠 *[2/4]* Đang tạo kịch bản 3-Giây Hook bùng nổ bằng Gemini Flash AI...");
     const scriptData = await generateScriptFromArticle(article, {
       geminiApiKey: cfg.geminiApiKey,
       provider: cfg.ttsProvider,
@@ -124,7 +193,7 @@ async function handleGenerateVideo(chatId: number | string, url: string, themeSt
     });
 
     // 3. Render
-    await sendMessage(chatId, "🎙️ *[3/4]* Đang tổng hợp giọng đọc, phụ đề Kinetic & render video...");
+    await sendMessage(chatId, `🎙️ *[3/4]* Đang đọc voice Edge-TTS (+16%), tạo phụ đề Kinetic Pop & mix hiệu ứng SFX với theme *${info.name}*...`);
     const result = await runPipeline({
       scriptData,
       theme,
@@ -135,8 +204,13 @@ async function handleGenerateVideo(chatId: number | string, url: string, themeSt
     }
 
     // 4. Send Video
-    await sendMessage(chatId, "📤 *[4/4]* Render thành công! Đang tải video lên Telegram...");
-    const caption = `🎬 *${article.title}*\n\n🔗 Nguồn: ${url}\n✨ Kênh: ${cfg.tiktok.displayName} (${cfg.tiktok.handle})\n⚡ Render tự động 24/7 hoàn tất!`;
+    await sendMessage(chatId, "📤 *[4/4]* Render hoàn tất! Đang tải video lên Telegram...");
+    const caption =
+      `🎬 *${article.title}*\n\n` +
+      `🔗 *Nguồn:* ${url}\n` +
+      `🎨 *Theme:* ${info.icon} ${info.name}\n` +
+      `✨ *Kênh:* ${cfg.tiktok.displayName} (${cfg.tiktok.handle})\n` +
+      `⚡ Render tự động 24/7 hoàn tất!`;
     await sendVideo(chatId, result.videoPath, caption);
   } catch (err: any) {
     log.error("Lỗi khi xử lý tạo video qua Telegram bot:", err);
@@ -154,10 +228,10 @@ async function startBot() {
     log.info(`✅ Kết nối Telegram Bot thành công: @${me.data.result.username} (${me.data.result.first_name})`);
     console.log(`\n========================================================`);
     console.log(`🤖 TELEGRAM BOT SẴN SÀNG NHẬN LỆNH: @${me.data.result.username}`);
-    console.log(`   Dán bất kỳ link bài báo hoặc link GitHub vào bot để tạo video!`);
+    console.log(`   Hỗ trợ 6 theme: cyberpunk, matrix, sunset, crimson, dark, light`);
     console.log(`========================================================\n`);
   } catch (err: any) {
-    log.error("Không thể kết nối Telegram Bot. Kiểm tra TELEGRAM_BOT_TOKEN trong .env.local", err.message);
+    log.error("Không thể kết nối Telegram Bot. Kiểm tra TELEGRAM_BOT_TOKEN trong .env.local", err);
     process.exit(1);
   }
 
@@ -183,39 +257,41 @@ async function startBot() {
             chatId,
             `👋 *Xin chào ${msg.from?.first_name || "bạn"}!*\n\n` +
             `Chào mừng bạn đến với *Auto Video Generator Bot* của *${loadConfig().tiktok.displayName}* 🎬\n\n` +
-            `🤖 *Cách tạo video siêu nhanh:*\n` +
-            `1️⃣ Chỉ cần *gửi trực tiếp link GitHub* hoặc *link bài viết tin tức* vào đây.\n` +
-            `2️⃣ Hoặc gõ lệnh: \`/video <link> [dark|light|cyberpunk]\`\n\n` +
-            `Ví dụ:\n` +
-            `• \`https://github.com/facebook/react\`\n` +
-            `• \`/video https://github.com/facebook/react cyberpunk\`\n\n` +
-            `⚡ Video sẽ được tự động biên kịch, đọc voice, tạo phụ đề động và gửi lại file MP4 ngay tại đây!`
+            `🤖 *CÁCH TẠO VIDEO SIÊU NHANH:*\n` +
+            `1️⃣ *Cách 1 (Nhanh nhất)*: Dán link GitHub hoặc link bài báo vào đây kèm tên theme mong muốn.\n` +
+            `   • \`https://github.com/facebook/react\` (Mặc định theme Cyberpunk)\n` +
+            `   • \`https://github.com/hien23ns/Secmon matrix\` (Theme Matrix Green)\n` +
+            `   • \`https://vnexpress.net/... sunset\` (Theme Synthwave Sunset)\n` +
+            `   • \`https://github.com/... crimson\` (Theme Crimson Fire Red)\n\n` +
+            `2️⃣ *Cách 2 (Lệnh)*: \`/video <link> [theme]\`\n\n` +
+            `🎨 *Gõ /themes* để xem danh sách và mô tả 6 theme đồ họa đỉnh cao!\n\n` +
+            `⚡ Video sẽ được tự động biên kịch 3s Hook WOW, đọc voice dồn dập, tạo phụ đề động và gửi lại file MP4 ngay tại đây!`
           );
           continue;
         }
 
-        let targetUrl = "";
-        let selectedTheme = "cyberpunk";
-
-        if (text.startsWith("/video")) {
-          const parts = text.split(/\s+/).slice(1);
-          if (parts.length > 0 && parts[0].startsWith("http")) {
-            targetUrl = parts[0];
-            if (parts[1]) selectedTheme = parts[1];
+        if (text === "/themes") {
+          let themesMsg = `🎨 *DANH SÁCH 6 GIAO DIỆN (THEMES) ĐỈNH CAO:*\n\n`;
+          for (const [key, t] of Object.entries(THEME_DESCRIPTIONS)) {
+            themesMsg += `${t.icon} *\`${key}\`* (*${t.name}*)\n   └ ${t.desc}\n\n`;
           }
-        } else if (text.startsWith("http://") || text.startsWith("https://")) {
-          targetUrl = text;
+          themesMsg += `💡 *Cách dùng*: Gửi link kèm tên theme, ví dụ: \`https://github.com/facebook/react matrix\``;
+          await sendMessage(chatId, themesMsg);
+          continue;
         }
 
-        if (targetUrl) {
+        const { url, theme } = parseUserPrompt(text);
+
+        if (url) {
           // Bắt đầu tạo video
-          handleGenerateVideo(chatId, targetUrl, selectedTheme).catch((e) => {
+          handleGenerateVideo(chatId, url, theme).catch((e) => {
             log.error("Lỗi unhandled trong handleGenerateVideo:", e);
           });
         } else {
           await sendMessage(
             chatId,
-            `💡 Vui lòng gửi một đường link bài viết hoặc link GitHub hợp lệ (bắt đầu bằng \`https://\`) để tạo video!`
+            `💡 Vui lòng gửi một đường link bài viết hoặc link GitHub hợp lệ (bắt đầu bằng \`https://\`) để tạo video!\n\n` +
+            `Gõ */themes* để khám phá 6 giao diện video cực chất.`
           );
         }
       }

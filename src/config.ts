@@ -3,14 +3,25 @@ loadDotenv({ path: ".env.local" });
 loadDotenv();
 
 export type TtsProvider = "edge-tts" | "lucylab" | "elevenlabs" | "vbee";
-export type VideoTheme = "dark-neon" | "light-pro" | "cyberpunk";
+export type VideoTheme =
+  | "dark-neon"
+  | "light-pro"
+  | "cyberpunk"
+  | "matrix-code"
+  | "sunset-vibes"
+  | "crimson-beast";
 
 export function normalizeTheme(raw?: string): VideoTheme {
-  const t = (raw ?? "dark-neon").trim().toLowerCase();
+  const t = (raw ?? "cyberpunk").trim().toLowerCase();
   if (t === "dark" || t === "dark-neon") return "dark-neon";
   if (t === "light" || t === "light-pro") return "light-pro";
   if (t === "cyberpunk" || t === "cyber") return "cyberpunk";
-  throw new Error(`VIDEO_THEME must be "dark-neon", "light-pro", or "cyberpunk", got "${raw}"`);
+  if (t === "matrix" || t === "matrix-code" || t === "hacker" || t === "green") return "matrix-code";
+  if (t === "sunset" || t === "sunset-vibes" || t === "synthwave" || t === "purple") return "sunset-vibes";
+  if (t === "crimson" || t === "crimson-beast" || t === "red" || t === "fire") return "crimson-beast";
+  throw new Error(
+    `VIDEO_THEME must be "cyberpunk", "dark-neon", "light-pro", "matrix-code", "sunset-vibes", or "crimson-beast", got "${raw}"`
+  );
 }
 
 export interface TiktokConfig {

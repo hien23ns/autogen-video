@@ -179,7 +179,7 @@ describe("loadConfig", () => {
   });
 
   describe("Theme normalization", () => {
-    it("supports dark, light, and cyberpunk theme options", () => {
+    it("supports all 6 theme options and their aliases", () => {
       process.env.VIDEO_THEME = "cyberpunk";
       expect(loadConfig().videoTheme).toBe("cyberpunk");
 
@@ -188,6 +188,15 @@ describe("loadConfig", () => {
 
       process.env.VIDEO_THEME = "light";
       expect(loadConfig().videoTheme).toBe("light-pro");
+
+      process.env.VIDEO_THEME = "matrix";
+      expect(loadConfig().videoTheme).toBe("matrix-code");
+
+      process.env.VIDEO_THEME = "sunset";
+      expect(loadConfig().videoTheme).toBe("sunset-vibes");
+
+      process.env.VIDEO_THEME = "crimson";
+      expect(loadConfig().videoTheme).toBe("crimson-beast");
     });
   });
 });

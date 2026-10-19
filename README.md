@@ -143,14 +143,20 @@ GEMINI_API_KEY=AIzaSyYourSecretKeyHere
 
 ---
 
-### Bước 5: Lựa Chọn Theme Giao Diện Video
+### Bước 5: Lựa Chọn Bộ Giao Diện Video (Themes)
 
-Hệ thống hỗ trợ 3 theme được trau chuốt tỉ mỉ:
-1. `cyberpunk` (Mặc định được khuyến nghị): Phong cách viễn tưởng neon vàng (`#ffe600`), cyan (`#00f0ff`) và magenta (`#ff0055`) với hiệu ứng lưới công nghệ 3D.
-2. `dark-neon`: Xanh navy, tím neon và xanh dương huyền bí.
-3. `light-pro`: Tông trắng xám sang trọng cho tin tức doanh nghiệp, tài chính.
+Dự án tích hợp sẵn **6 theme đồ họa cao cấp**, được thiết kế chuyên biệt cho từng chủ đề nội dung trên TikTok / Reels:
 
-Bạn có thể chỉnh mặc định trong `.env.local`:
+| Icon | Tên Theme (`theme`) | Bảng Màu Chủ Đạo | Phong Cách & Nội Dung Phù Hợp |
+| :---: | :--- | :--- | :--- |
+| ⚡ | **`cyberpunk`** *(Mặc định)* | Vàng Neon (`#ffe600`), Cyan (`#00f0ff`), Hồng Magenta (`#ff0055`) | Công nghệ tương lai, siêu ứng dụng, tin tức công nghệ tổng hợp |
+| 💻 | **`matrix-code`** (`matrix`) | Hacker Black (`#030805`), Matrix Green (`#00ff66`), Emerald | Mã nguồn mở GitHub, lập trình viên, an ninh mạng, Linux, DevOps |
+| 🌅 | **`sunset-vibes`** (`sunset`) | Synthwave Retro, Tím hoàng hôn (`#8b5cf6`), Cam lửa, Vàng ấm | Trí tuệ nhân tạo (AI), Design, UI/UX, đồ họa, lối sống công nghệ |
+| 🔥 | **`crimson-beast`** (`crimson`)| Obsidian Black, Huyết long Đỏ rực (`#ff1e42`), Vàng kim hoàng gia | Cảnh báo khẩn cấp, lỗ hổng Zero-Day, tin tức sốc, drama công nghệ |
+| 🌌 | **`dark-neon`** (`dark`) | Xanh đen Navy, Neon Blue (`#3b82f6`), Tím huyền bí | Fintech, điện toán đám mây, kiến trúc hệ thống, server enterprise |
+| 💼 | **`light-pro`** (`light`) | Trắng xám sang trọng, Xanh Slate chuyên nghiệp | Tin tức tài chính, kinh doanh số, doanh nghiệp B2B, bài báo chính thống |
+
+Bạn có thể chỉnh theme mặc định trong `.env.local`:
 ```ini
 VIDEO_THEME=cyberpunk
 ```
@@ -159,13 +165,19 @@ VIDEO_THEME=cyberpunk
 
 ## 🎬 Cách Sử Dụng Tạo Video Một Chạm
 
-Chạy lệnh với bất kỳ URL bài báo (VnExpress, Zing, Dev.to, Medium...) hoặc GitHub repository:
+Chạy lệnh với bất kỳ URL bài báo (VnExpress, Zing, Dev.to, Medium...) hoặc GitHub repository kèm theme yêu thích:
 
 ```bash
-# Tạo video từ GitHub repository với theme Cyberpunk
-npm run pipeline -- --url https://github.com/hien23ns/Secmon --theme cyberpunk
+# 1. Tạo video với Theme Hacker Xanh Lá (Matrix Code)
+npm run pipeline -- --url https://github.com/hien23ns/Secmon --theme matrix
 
-# Hoặc tạo video từ bài báo công nghệ
+# 2. Tạo video với Theme Hoàng Hôn Tím Cam (Sunset Vibes)
+npm run pipeline -- --url https://github.com/facebook/react --theme sunset
+
+# 3. Tạo video với Theme Cảnh Báo Đỏ Rực (Crimson Beast)
+npm run pipeline -- --url https://github.com/hien23ns/Secmon --theme crimson
+
+# 4. Tạo video với Theme Cyberpunk Mặc Định
 npm run pipeline -- --url https://github.com/facebook/react --theme cyberpunk
 ```
 
@@ -180,93 +192,112 @@ Sau khi chạy xong, video và toàn bộ tài nguyên sẽ được lưu tại:
 
 ## 🤖 Tự Động Hóa 24/7: GitHub Actions + Make.com & Bot Telegram
 
-Bạn hoàn toàn có thể vận hành hệ thống tạo video tự động **24/7 không cần bật máy tính**, hoàn toàn miễn phí thông qua GitHub Actions và Make.com. Người dùng chỉ cần gửi link vào Telegram, sau 2 - 3 phút video sẽ tự động bay về Telegram chat!
+Bạn hoàn toàn có thể vận hành hệ thống tạo video tự động **24/7 không cần bật máy tính**, hoàn toàn miễn phí thông qua GitHub Actions và Make.com. Người dùng chỉ cần gửi link vào Telegram kèm theme mong muốn, sau 2 - 3 phút video sẽ tự động bay về Telegram chat!
 
 ```
-[ Người Dùng Gửi Link ] 
-       │ 
-       ▼
-[ Bot Telegram / Make.com Webhook ] 
-       │ 
-       ▼ (Gửi repository_dispatch API)
-[ GitHub Actions Cloud Runner (Ubuntu) ] 
-       │ 1. Scrape nội dung & đọc README.md
+[ Người Dùng Nhắn Tin Link + Theme Vào Bot Telegram ] 
+                          │ 
+                          ▼
+       [ Make.com Scenario (Bắt Webhook Tức Thì) ] 
+                          │ 
+                          ▼ (POST repository_dispatch API)
+ [ GitHub Actions Cloud Runner (Ubuntu Miễn Phí của GitHub) ] 
+       │ 1. Scrape dữ liệu & đọc toàn bộ README.md repo
        │ 2. Gemini AI tạo kịch bản 3-Giây Hook bùng nổ
-       │ 3. Edge-TTS tạo giọng thuyết minh dồn dập
-       │ 4. Render video 9:16 phụ đề Kinetic & SFX
-       ▼ 
-[ Telegram Bot API: Gửi video.mp4 về lại người dùng! ]
+       │ 3. Edge-TTS đọc voice tốc độ dồn dập +16%
+       │ 4. HyperFrames render video 9:16 theo đúng Theme đã chọn
+       │ 5. Tự động đồng bộ phụ đề Pop-in Kinetic & hiệu ứng SFX
+                          ▼ 
+   [ Telegram Bot API: Gửi file video.mp4 về lại cho Người Dùng! ]
 ```
 
 ---
 
 ### PHƯƠNG ÁN 1: Điều Khiển Bằng Bot Telegram Trực Tiếp (Local / VPS)
 
-Nếu bạn muốn chạy bot trực tiếp trên máy hoặc máy chủ cá nhân:
+Module Telegram Bot đã được tích hợp sẵn đầy đủ tính năng thông minh trong `src/bot/telegram-bot.ts`:
 
-1. **Lấy Token Bot Telegram**:
-   - Chat với `@BotFather` trên Telegram, gõ lệnh `/newbot` để tạo bot và nhận `TELEGRAM_BOT_TOKEN`.
-   - Lấy Chat ID của bạn bằng cách chat `/start` với `@userinfobot`.
-
-2. **Cấu hình trong file `.env.local`**:
-   ```ini
-   TELEGRAM_BOT_TOKEN=77xxxxxxxx:AAExxxxxxxxxxxxxxxxxxxxx
-   # (Tùy chọn) Điền GITHUB_PAT nếu muốn bot ủy quyền cho GitHub Actions render thay vì chạy trên máy:
-   # GITHUB_PAT=ghp_xxxxxxxxxxxxxxxxxxxxxxxx
-   # GITHUB_REPO=hien23ns/autogen-video
-   ```
-
-3. **Khởi động Bot Telegram**:
+1. **Khởi động Bot Telegram**:
    ```bash
    npm run bot
    ```
-   > 💬 **Sử dụng**: Mở bot Telegram của bạn, gửi bất kỳ đường link bài viết hoặc link GitHub nào (hoặc gõ `/video <link> [cyberpunk|dark|light]`). Bot sẽ tự động tạo video và gửi file MP4 về cho bạn!
+
+2. **Cách điều khiển qua Telegram**:
+   - Gõ `/start` hoặc `/help`: Xem hướng dẫn sử dụng.
+   - Gõ `/themes`: Xem danh sách và mô tả 6 theme đồ họa.
+   - **Tạo video cực nhanh**: Chỉ cần gửi link trực tiếp kèm tên theme vào chat bot:
+     - `https://github.com/facebook/react` *(Tự động áp dụng theme mặc định Cyberpunk)*
+     - `https://github.com/hien23ns/Secmon matrix` *(Áp dụng theme Matrix Code xanh lá)*
+     - `https://github.com/facebook/react sunset` *(Áp dụng theme Synthwave Sunset)*
+     - `https://github.com/hien23ns/Secmon crimson` *(Áp dụng theme Crimson Đỏ lửa)*
+   - Bot sẽ tự động thông báo tiến trình từng bước và trả file video MP4 trực tiếp về chat!
 
 ---
 
-### PHƯƠNG ÁN 2: Thiết Lập Chạy 24/7 Miễn Phí Với Make.com + GitHub Actions
+### PHƯƠNG ÁN 2: Hướng Dẫn Chi Tiết Thiết Lập Chạy 24/7 Với Make.com + GitHub Actions
 
-#### Bước 1: Tạo GitHub Personal Access Token (PAT)
+#### Bước 1: Lấy Token Bot Telegram & Chat ID
+1. Mở Telegram, tìm kiếm bot `@BotFather`.
+2. Gõ lệnh `/newbot`, đặt tên cho bot (ví dụ: `My Video Gen Bot`) và username (ví dụ: `my_video_autogen_bot`).
+3. Copy chuỗi **HTTP API Token** (dạng `77xxxxxxxx:AAExxxxxxxxxxxxx`).
+4. Tìm kiếm bot `@userinfobot` trên Telegram, nhấn `/start` để lấy **ID** của bạn (dạng số: `123456789`).
+
+#### Bước 2: Tạo GitHub Personal Access Token (PAT)
 1. Truy cập [GitHub Token Settings](https://github.com/settings/tokens).
 2. Nhấn **Generate new token (classic)**.
-3. Đặt tên (ví dụ: `MakeCom-Video-Trigger`) và tích chọn quyền:
-   - ✅ `repo` (Toàn quyền quản lý repo)
-   - ✅ `workflow` (Quyền chạy workflow)
-4. Nhấn **Generate token** và lưu lại chuỗi token này (bắt đầu bằng `ghp_...`).
+3. Đặt Note: `MakeCom Video Trigger` và chọn Expiration: `No expiration` (hoặc 90 ngày).
+4. Tích chọn 2 quyền bắt buộc:
+   - ✅ **`repo`** (Full control of private repositories)
+   - ✅ **`workflow`** (Update GitHub Action workflows)
+5. Cuộn xuống cuối nhấn **Generate token**. Copy và lưu lại token này (`ghp_...`).
 
-#### Bước 2: Thêm Secrets trên Repository GitHub
-1. Vào trang repo GitHub của bạn: `https://github.com/<tên-bạn>/autogen-video/settings/secrets/actions`
-2. Nhấn **New repository secret** và thêm 2 secret:
-   - Name: `GEMINI_API_KEY` | Value: *API key Gemini của bạn*
-   - Name: `TELEGRAM_BOT_TOKEN` | Value: *Token Bot Telegram lấy từ @BotFather*
+#### Bước 3: Thêm Secrets trên Repository GitHub
+1. Vào trang repo GitHub của bạn: `https://github.com/<username>/autogen-video`.
+2. Chọn tab **Settings** -> **Secrets and variables** -> **Actions**.
+3. Nhấn **New repository secret** để thêm 2 secret:
+   - Secret 1:
+     - Name: `GEMINI_API_KEY`
+     - Value: *(Dán API Key Gemini của bạn)*
+   - Secret 2:
+     - Name: `TELEGRAM_BOT_TOKEN`
+     - Value: *(Dán Token Bot Telegram lấy từ @BotFather)*
 
-#### Bước 3: Cấu Hình Kịch Bản (Scenario) trên Make.com
-1. Tạo một kịch bản mới trên [Make.com](https://www.make.com/).
-2. **Module 1**: Chọn app **Telegram Bot** -> Action **Watch Updates**:
-   - Kết nối với Telegram Bot Token của bạn.
-3. **Module 2**: Chọn app **HTTP** -> Action **Make a request**:
-   - **URL**: `https://api.github.com/repos/hien23ns/autogen-video/dispatches`
-   - **Method**: `POST`
-   - **Headers**:
-     - `Authorization`: `Bearer <GITHUB_PAT_CỦA_BẠN>`
-     - `Accept`: `application/vnd.github.v3+json`
-     - `Content-Type`: `application/json`
-     - `User-Agent`: `Make-Automation`
-   - **Body Type**: `Raw`
-   - **Content Type**: `JSON (application/json)`
-   - **Request content**:
-     ```json
-     {
-       "event_type": "create_video",
-       "client_payload": {
-         "url": "{{1.message.text}}",
-         "chat_id": "{{1.message.chat.id}}",
-         "theme": "cyberpunk"
+#### Bước 4: Thiết Lập Kịch Bản (Scenario) Tự Động Hóa Trên Make.com
+1. Đăng nhập vào [Make.com](https://www.make.com/) và nhấn **Create a new scenario**.
+2. **Thêm Module 1 (Telegram Bot)**:
+   - Tìm kiếm và chọn app **Telegram Bot**.
+   - Chọn trigger: **Watch Updates**.
+   - Nhấn **Add Connection** và dán `TELEGRAM_BOT_TOKEN` của bạn vào -> Nhấn Save.
+   - Mục **Limit**: điền `10`.
+3. **Thêm Module 2 (HTTP Request đến GitHub API)**:
+   - Nhấn dấu `+` nối tiếp Module 1, tìm kiếm và chọn app **HTTP**.
+   - Chọn action: **Make a request**.
+   - Cấu hình chính xác như sau:
+     - **URL**: `https://api.github.com/repos/<username-của-bạn>/autogen-video/dispatches`
+       *(Ví dụ: `https://api.github.com/repos/hien23ns/autogen-video/dispatches`)*
+     - **Method**: `POST`
+     - **Headers**:
+       - Name: `Authorization` | Value: `Bearer <GITHUB_PAT_CỦA_BẠN>`
+       - Name: `Accept` | Value: `application/vnd.github.v3+json`
+       - Name: `Content-Type` | Value: `application/json`
+       - Name: `User-Agent` | Value: `Make-Video-Automation`
+     - **Body type**: `Raw`
+     - **Content type**: `JSON (application/json)`
+     - **Request content**:
+       ```json
+       {
+         "event_type": "create_video",
+         "client_payload": {
+           "url": "{{1.message.text}}",
+           "chat_id": "{{1.message.chat.id}}",
+           "theme": "cyberpunk"
+         }
        }
-     }
-     ```
-4. Bật kịch bản sang chế độ **ON**.
-5. Bây giờ, bất kỳ khi nào bạn hoặc người dùng nhắn tin đường link bài báo/GitHub vào Bot Telegram, Make.com sẽ tự động kích hoạt máy ảo GitHub Actions tạo video và Telegram Bot sẽ gửi video hoàn tất về ngay trong cuộc trò chuyện!
+       ```
+4. **Nhấn Save** kịch bản ở góc dưới và gạt công tắc kích hoạt kịch bản sang **ON** (Immediately as data arrives).
+
+> 🎯 **Thử nghiệm ngay**: Mở bot Telegram của bạn lên và nhắn một đường link (ví dụ: `https://github.com/hien23ns/Secmon`).
+> Make.com sẽ lập tức bắt tín hiệu và gửi dispatch sang GitHub Actions. Sau khoảng 2 phút render trên máy ảo Cloud, video hoàn thiện sẽ tự động gửi thẳng về cuộc trò chuyện Telegram của bạn!
 
 ---
 

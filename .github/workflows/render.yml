@@ -13,7 +13,7 @@ on:
         description: "Telegram Chat ID nhận video hoàn tất"
         required: true
       theme:
-        description: "Tuỳ chọn theme (dark / light / cyberpunk)"
+        description: "Tuỳ chọn theme (cyberpunk | matrix | sunset | crimson | dark | light)"
         required: false
         default: "cyberpunk"
 

@@ -287,6 +287,9 @@ export async function runPipeline(input: string | PipelineRunOptions): Promise<P
   const themeFile =
     selectedTheme === "light-pro" ? "styles.light-pro.css"
     : selectedTheme === "cyberpunk" ? "styles.cyberpunk.css"
+    : selectedTheme === "matrix-code" ? "styles.matrix-code.css"
+    : selectedTheme === "sunset-vibes" ? "styles.sunset-vibes.css"
+    : selectedTheme === "crimson-beast" ? "styles.crimson-beast.css"
     : "styles.css";
   await copyFile(join(TPL_DIR, themeFile),       join(outputDir, "styles.css"));
   await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
