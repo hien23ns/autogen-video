@@ -1,0 +1,468 @@
+/* ============================================================
+   CYBERPUNK THEME — Vietnamese Tech News Short Video 9:16 (1080×1920)
+   Neon Yellow + Cyber Cyan + Hot Pink + Dark Grid Aesthetics
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Anton&family=Bebas+Neue&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 1080px; height: 1920px; overflow: hidden; background: #080911;
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  color: #fff;
+}
+
+#stage { position: relative; width: 1080px; height: 1920px; }
+.scene { position: absolute; top: 0; left: 0; width: 1080px; height: 1920px; opacity: 0; }
+
+/* ── PERSISTENT SHELL BACKGROUND ───────────────────────────── */
+.shell-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(circle at 50% 30%, #15102a 0%, #080911 85%);
+}
+
+/* Scanlines overlay */
+.shell-bg::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 2;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+}
+
+/* Grain overlay */
+#grain-overlay .grain-texture {
+  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  background-repeat: repeat;
+  opacity: 0.12;
+}
+
+/* ── BRAND SHELL HEADER ────────────────────────────────────── */
+.brand-shell-header {
+  position: absolute; top: 140px; left: 60px;
+  display: flex; align-items: center; gap: 28px;
+  z-index: 50;
+}
+
+.brand-icon {
+  width: 90px; height: 90px;
+  background: linear-gradient(135deg, #fcee0a 0%, #ff0055 100%);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 34px; font-weight: 900; color: #000;
+  box-shadow: 0 0 30px rgba(252, 238, 10, 0.6), 0 0 15px rgba(255, 0, 85, 0.5);
+  flex-shrink: 0;
+}
+
+.brand-text { display: flex; flex-direction: column; gap: 4px; }
+.brand-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 38px; font-weight: 800; color: #fff;
+  letter-spacing: -0.01em; text-transform: uppercase;
+}
+.brand-tag {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: #00f0ff; letter-spacing: 4px; text-transform: uppercase;
+  text-shadow: 0 0 10px #00f0ff;
+}
+
+/* ── BRAND SHELL FOOTER HANDLE ─────────────────────────────── */
+.brand-shell-handle {
+  position: absolute; bottom: 200px; right: 60px;
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(13, 14, 26, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+  border-radius: 50px;
+  padding: 16px 32px;
+  z-index: 50;
+}
+
+.handle-music { font-size: 30px; color: #fcee0a; }
+.handle-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 28px; font-weight: 700; color: #00f0ff;
+  letter-spacing: 0.05em;
+}
+
+.brand-shell-keyword {
+  position: absolute; bottom: 130px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 0, 85, 0.15);
+  border: 1px solid rgba(255, 0, 85, 0.5);
+  box-shadow: 0 0 20px rgba(255, 0, 85, 0.3);
+  border-radius: 50px;
+  padding: 12px 36px;
+  z-index: 50;
+}
+.brand-shell-keyword span {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px; font-weight: 700;
+  color: #ff0055; letter-spacing: 2px; text-transform: uppercase;
+}
+
+.vignette {
+  position: absolute; inset: 0; z-index: 40; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(5, 5, 10, 0.8) 100%);
+}
+
+/* ── 3-TIER STACKED LAYOUT ─────────────────────────────────── */
+.scene-stacked {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 130px 48px 140px;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+/* TIER TOP */
+.tier-top {
+  width: 100%;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 20;
+}
+
+.tier-top-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 28px;
+  border-radius: 50px;
+  background: rgba(252, 238, 10, 0.12);
+  border: 1px solid rgba(252, 238, 10, 0.6);
+  box-shadow: 0 0 25px rgba(252, 238, 10, 0.35), inset 0 0 10px rgba(252, 238, 10, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  margin-bottom: 20px;
+}
+
+.tier-top-badge .badge-icon { font-size: 26px; }
+.tier-top-badge .badge-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fcee0a;
+  text-shadow: 0 0 10px rgba(252, 238, 10, 0.8);
+}
+
+.tier-top-headline {
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 0 40px rgba(255, 0, 85, 0.4);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* TIER MID */
+.tier-mid {
+  width: 100%;
+  height: 860px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 15;
+}
+
+.mockup-laptop {
+  position: relative;
+  width: 940px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 35px rgba(0, 240, 255, 0.35));
+}
+
+.mockup-laptop-lid {
+  width: 900px;
+  height: 560px;
+  background: #090a14;
+  border-radius: 24px 24px 8px 8px;
+  border: 3px solid rgba(0, 240, 255, 0.5);
+  box-shadow: inset 0 0 30px rgba(0, 240, 255, 0.2), 0 0 30px rgba(255, 0, 85, 0.25);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mockup-laptop-notch {
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 150px; height: 20px;
+  background: #000;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  border-bottom: 1px solid #00f0ff;
+  z-index: 30;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.mockup-laptop-camera {
+  width: 7px; height: 7px; background: #000;
+  border: 1px solid #ff0055; border-radius: 50%;
+  box-shadow: 0 0 6px #ff0055;
+}
+
+.mockup-browser-header {
+  height: 44px;
+  background: rgba(13, 14, 26, 0.95);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+  display: flex; align-items: center; padding: 0 18px; gap: 12px; z-index: 25;
+}
+
+.mockup-browser-dots { display: flex; gap: 8px; }
+.mockup-dot { width: 12px; height: 12px; border-radius: 50%; }
+.mockup-dot.red { background: #ff0055; box-shadow: 0 0 8px #ff0055; }
+.mockup-dot.yellow { background: #fcee0a; box-shadow: 0 0 8px #fcee0a; }
+.mockup-dot.green { background: #00f0ff; box-shadow: 0 0 8px #00f0ff; }
+
+.mockup-browser-address {
+  flex: 1; height: 28px;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+  display: flex; align-items: center; padding: 0 12px; gap: 8px;
+  font-family: 'Courier New', monospace; font-size: 13px; color: #00f0ff;
+}
+
+.mockup-laptop-screen {
+  flex: 1; width: 100%;
+  background: #06070d;
+  overflow: hidden; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.mockup-laptop-base {
+  width: 960px; height: 18px;
+  background: linear-gradient(180deg, #1f2338 0%, #0d0e1a 100%);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
+  position: relative;
+}
+
+.mockup-phone {
+  position: relative;
+  width: 440px; height: 820px;
+  background: #080911;
+  border-radius: 56px;
+  border: 4px solid #00f0ff;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 45px rgba(0, 240, 255, 0.4);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+
+.mockup-phone-island {
+  position: absolute; top: 14px; left: 50%;
+  transform: translateX(-50%);
+  width: 130px; height: 32px;
+  background: #000; border-radius: 20px;
+  border: 1px solid #ff0055;
+  z-index: 30; display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
+}
+
+.mockup-phone-island .island-cam {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: #1e1b4b; border: 1px solid #fcee0a;
+}
+
+.mockup-phone-screen {
+  flex: 1; width: 100%; overflow: hidden; position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.mockup-scroll-track {
+  position: absolute; top: 0; left: 0; width: 100%; will-change: transform;
+}
+.mockup-scroll-img {
+  width: 100%; height: auto; min-height: 100%; display: block; object-fit: cover; object-position: top center;
+}
+
+/* TIER BOT: KARAOKE */
+.tier-bot {
+  width: 100%;
+  height: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.tier-bot-karaoke {
+  width: 100%; max-width: 960px; display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+
+.karaoke-badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px;
+  background: rgba(13, 14, 26, 0.85);
+  border: 1px solid rgba(255, 0, 85, 0.5);
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+  border-radius: 30px; margin-bottom: 14px;
+}
+.karaoke-badge .karaoke-mic { font-size: 16px; }
+.karaoke-badge .karaoke-label {
+  font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800;
+  letter-spacing: 2px; color: #ff0055; text-transform: uppercase;
+}
+
+.karaoke-display-box {
+  width: 100%;
+  background: rgba(13, 14, 26, 0.9);
+  border: 2px solid rgba(0, 240, 255, 0.45);
+  border-radius: 28px;
+  padding: 24px 32px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.25);
+  min-height: 140px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+
+.k-chunk {
+  width: 100%; display: flex; align-items: center; justify-content: center;
+  position: absolute; opacity: 0; transform: translateY(15px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.k-chunk.active { opacity: 1; transform: translateY(0); position: relative; }
+
+.k-chunk-inner {
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  font-size: 40px; font-weight: 800; line-height: 1.35;
+  text-align: center; color: rgba(255, 255, 255, 0.6);
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px;
+}
+
+.k-word {
+  display: inline-block; color: rgba(255, 255, 255, 0.65);
+  transition: color 0.12s ease, transform 0.12s ease;
+  transform-origin: center bottom; padding: 2px 4px;
+}
+
+.k-word.k-active {
+  color: #fcee0a;
+  transform: scale(1.18);
+  text-shadow: 0 0 20px #fcee0a, 0 0 35px #ff0055;
+  background: rgba(252, 238, 10, 0.2);
+  border: 1px solid rgba(252, 238, 10, 0.5);
+  border-radius: 8px;
+}
+
+.k-word.k-done { color: #ffffff; transform: scale(1.0); }
+
+/* Dynamic Mesh & Cyber Grid */
+.dynamic-mesh-bg {
+  position: absolute; inset: 0; z-index: 1; overflow: hidden; background: #080911;
+}
+
+.mesh-orb { position: absolute; border-radius: 50%; filter: blur(140px); mix-blend-mode: screen; pointer-events: none; }
+.mesh-orb-1 {
+  width: 900px; height: 900px; top: -200px; left: -200px;
+  background: radial-gradient(circle, rgba(255, 0, 85, 0.6) 0%, transparent 70%);
+  animation: mesh-drift-1 18s ease-in-out infinite alternate;
+}
+.mesh-orb-2 {
+  width: 850px; height: 850px; bottom: -150px; right: -150px;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.6) 0%, transparent 70%);
+  animation: mesh-drift-2 22s ease-in-out infinite alternate;
+}
+.mesh-orb-3 {
+  width: 700px; height: 700px; top: 40%; left: 20%;
+  background: radial-gradient(circle, rgba(252, 238, 10, 0.45) 0%, transparent 70%);
+  animation: mesh-drift-3 15s ease-in-out infinite alternate;
+}
+
+.tech-grid-overlay {
+  position: absolute; inset: 0; z-index: 2;
+  background-image: linear-gradient(rgba(0, 240, 255, 0.08) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 0, 85, 0.08) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+@keyframes mesh-drift-1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(80px, 120px) scale(1.15); }
+}
+@keyframes mesh-drift-2 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-70px, -90px) scale(1.12); }
+}
+@keyframes mesh-drift-3 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(60px, -50px) scale(0.95); }
+}
+
+/* Fallback inner card styles */
+.layout-hook { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+.hook-headline { font-family: 'Montserrat', sans-serif; font-size: 80px; font-weight: 900; color: #fff; text-shadow: 0 0 30px rgba(0, 240, 255, 0.8); }
+.hook-subhead { font-family: 'Be Vietnam Pro', sans-serif; font-size: 38px; color: #fcee0a; text-shadow: 0 0 15px #fcee0a; margin-top: 15px; }
+
+.layout-stat-hero { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+.stat-value { font-family: 'Montserrat', sans-serif; font-size: 130px; font-weight: 900; color: #fcee0a; text-shadow: 0 0 40px #fcee0a; }
+.stat-label { font-size: 38px; font-weight: 700; color: #00f0ff; text-transform: uppercase; margin-top: 10px; }
+.stat-context { font-size: 30px; color: #fff; margin-top: 8px; }
+
+.layout-feature-list { width: 100%; padding: 40px; }
+.feat-card { background: rgba(13, 14, 26, 0.85); border: 1.5px solid rgba(0, 240, 255, 0.4); border-radius: 24px; padding: 36px; }
+.feat-title { font-size: 42px; font-weight: 800; color: #fcee0a; margin-bottom: 20px; }
+.feat-rule { width: 100%; height: 3px; background: linear-gradient(90deg, #fcee0a, #ff0055); margin-bottom: 24px; }
+.feat-bullets { display: flex; flex-direction: column; gap: 16px; }
+.feat-bullet { display: flex; align-items: center; gap: 16px; font-size: 32px; font-weight: 600; color: #fff; }
+.feat-dot { width: 14px; height: 14px; background: #00f0ff; border-radius: 50%; box-shadow: 0 0 10px #00f0ff; }
+
+.layout-callout { width: 100%; padding: 40px; }
+.callout-card { background: rgba(13, 14, 26, 0.85); border: 2px solid #ff0055; border-radius: 24px; padding: 40px; box-shadow: 0 0 35px rgba(255, 0, 85, 0.3); }
+.callout-tag { font-size: 24px; font-weight: 800; color: #ff0055; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+.callout-statement { font-size: 40px; font-weight: 800; color: #fff; line-height: 1.3; }
+
+.layout-comparison { display: flex; align-items: center; justify-content: center; gap: 24px; width: 100%; padding: 40px; }
+.cmp-card { flex: 1; background: rgba(13, 14, 26, 0.85); border: 1.5px solid rgba(255, 255, 255, 0.15); border-radius: 24px; padding: 32px; text-align: center; }
+.cmp-card.color-cyan { border-color: #00f0ff; box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); }
+.cmp-card.color-purple { border-color: #ff0055; box-shadow: 0 0 25px rgba(255, 0, 85, 0.3); }
+.cmp-label { font-size: 28px; color: #94a3b8; margin-bottom: 8px; }
+.cmp-value { font-size: 64px; font-weight: 900; color: #fff; }
+.cmp-vs { font-size: 42px; font-weight: 900; color: #fcee0a; text-shadow: 0 0 20px #fcee0a; }
+.cmp-winner-badge { margin-top: 12px; padding: 4px 14px; background: #00f0ff; color: #000; font-weight: 900; border-radius: 20px; display: inline-block; font-size: 18px; }
+
+.layout-outro { text-align: center; padding: 40px; }
+.out-cta-top { font-size: 34px; font-weight: 700; color: #00f0ff; text-transform: uppercase; letter-spacing: 2px; }
+.out-channel { font-size: 80px; font-weight: 900; color: #fff; text-shadow: 0 0 30px rgba(252, 238, 10, 0.8); margin: 16px 0; }
+.out-underline { width: 500px; height: 4px; background: linear-gradient(90deg, #fcee0a, #ff0055); margin: 0 auto 20px; }
+.out-source { font-size: 28px; color: #94a3b8; }
+
+.tt-card { position: absolute; bottom: 360px; left: 50%; transform: translate(-50%, 300px); display: flex; align-items: center; gap: 30px; background: #0d0e1a; border: 2px solid #00f0ff; border-radius: 75px; padding: 25px 40px 25px 25px; box-shadow: 0 0 40px rgba(0, 240, 255, 0.35); opacity: 0; z-index: 60; }
+.tt-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #fcee0a; }
+.tt-profile-info { display: flex; flex-direction: column; gap: 2px; margin-right: 20px; }
+.tt-display-name { font-size: 42px; font-weight: 700; color: #fff; }
+.tt-handle { font-size: 28px; color: #00f0ff; }
+.tt-followers { font-size: 25px; color: #94a3b8; }
+.tt-follow-btn { position: relative; width: 250px; height: 80px; border-radius: 40px; background: #ff0055; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 25px #ff0055; }
+.tt-btn-text { font-size: 30px; font-weight: 700; color: #fff; }
+.tt-btn-text-following { opacity: 0; display: flex; align-items: center; gap: 8px; }
+.tt-check-icon { display: inline-block; width: 22px; height: 22px; }
+.tt-check-icon svg { width: 22px; height: 22px; display: block; }

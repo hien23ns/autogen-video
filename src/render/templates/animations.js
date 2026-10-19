@@ -1,9 +1,8 @@
-// v2 Animation Engine — template-specific entrance animations
-// HyperFrames runtime drives playback by seeking the timeline.
+// v3 3-Tier Animation Engine — Modern Vertical Video & Dynamic Karaoke
+// HyperFrames runtime drives playback by seeking the timeline frame-by-frame.
 //
-// IMPORTANT: Only use supported GSAP props: opacity, x, y, scale, scaleX, scaleY, rotation, width, height, visibility.
+// Supported GSAP props: opacity, x, y, scale, scaleX, scaleY, rotation, width, height, visibility.
 // Do NOT use `delay:` in vars — use position parameter (3rd arg) instead.
-// Do NOT use `attr:` settings. No complex easings.
 
 window.__timelines = window.__timelines || {};
 const tl = gsap.timeline({ paused: true });
@@ -25,13 +24,72 @@ window.__timelines["news-video"] = tl;
   // ── Scene dispatch ──────────────────────────────────────────────────────
   scenes.forEach((scene) => {
     const start = parseFloat(scene.dataset.start);
-    const dur   = parseFloat(scene.dataset.duration);
+    const dur = parseFloat(scene.dataset.duration);
     const layout = scene.dataset.layout;
 
     // Scene visibility: fade in/out
     tl.set(scene, { opacity: 1 }, start);
     tl.set(scene, { opacity: 0 }, start + dur);
 
+    // ── Tier Top Animations (Badge + Headline) ────────────────────────────
+    const badge = scene.querySelector(".tier-top-badge");
+    if (badge) {
+      tl.fromTo(badge, { scale: 0.5, opacity: 0, y: -20 }, { scale: 1, opacity: 1, y: 0, duration: 0.4 }, start + 0.1);
+    }
+
+    const headline = scene.querySelector(".tier-top-headline");
+    if (headline) {
+      tl.fromTo(headline, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, start + 0.2);
+      const mask = headline.querySelector(".shimmer-mask");
+      if (mask) {
+        tl.fromTo(mask, { x: "-120%" }, { x: "120%", duration: 0.9 }, start + 0.6);
+      }
+    }
+
+    // ── Tier Mid Animations (Mockup + Auto-scroll) ────────────────────────
+    const mockup = scene.querySelector(".mockup-laptop") || scene.querySelector(".mockup-phone");
+    if (mockup) {
+      tl.fromTo(mockup, { y: 60, scale: 0.92, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.55 }, start + 0.15);
+    }
+
+    const scrollTrack = scene.querySelector(".mockup-scroll-track");
+    if (scrollTrack) {
+      const scrollDuration = Math.max(1, dur * 0.75);
+      tl.fromTo(scrollTrack, { y: "0%" }, { y: "-35%", ease: "none", duration: scrollDuration }, start + 0.4);
+    }
+
+    // ── Tier Bot Animations (Karaoke Subtitles) ───────────────────────────
+    const karaokeBox = scene.querySelector(".karaoke-display-box");
+    if (karaokeBox) {
+      tl.fromTo(karaokeBox, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, start + 0.15);
+    }
+
+    const chunks = Array.from(scene.querySelectorAll(".k-chunk"));
+    chunks.forEach((chunk, cIdx) => {
+      const cStart = parseFloat(chunk.dataset.kStart);
+      const cEnd = parseFloat(chunk.dataset.kEnd);
+      // Ensure all chunks start hidden
+      tl.set(chunk, { opacity: 0, y: 15, visibility: "hidden" }, 0);
+      // Activate chunk
+      tl.set(chunk, { opacity: 1, y: 0, visibility: "visible" }, cStart);
+      // Hide chunk when next chunk starts or at scene end
+      const hideTime = cIdx < chunks.length - 1 ? cEnd : start + dur;
+      tl.set(chunk, { opacity: 0, y: -15, visibility: "hidden" }, hideTime);
+    });
+
+    const words = Array.from(scene.querySelectorAll(".k-word"));
+    words.forEach((word) => {
+      const wStart = parseFloat(word.dataset.kStart);
+      const wEnd = parseFloat(word.dataset.kEnd);
+      // Initial state
+      tl.set(word, { opacity: 0.65, scale: 1.0 }, 0);
+      // Highlight on read
+      tl.to(word, { opacity: 1, scale: 1.18, duration: 0.08 }, wStart);
+      // Finish highlight
+      tl.to(word, { scale: 1.0, duration: 0.08 }, wEnd);
+    });
+
+    // ── Template Specific Inner Animations ────────────────────────────────
     if (layout === "hook") {
       animateHook(scene, tl, start);
     } else if (layout === "comparison") {
@@ -51,9 +109,7 @@ window.__timelines["news-video"] = tl;
   function animateHook(scene, tl, start) {
     const headline = scene.querySelector(".hook-headline");
     if (headline) {
-      // Scale pop in
       tl.fromTo(headline, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6 }, start + 0.15);
-      // Shimmer sweep after entrance
       const mask = headline.querySelector(".shimmer-mask");
       if (mask) {
         tl.fromTo(mask, { x: "-120%" }, { x: "120%", duration: 1.0 }, start + 0.7);
@@ -89,7 +145,6 @@ window.__timelines["news-video"] = tl;
     const value = scene.querySelector(".stat-value");
     if (value) {
       tl.fromTo(value, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6 }, start + 0.15);
-      // Shimmer sweep on the stat value
       const mask = value.querySelector(".shimmer-mask");
       if (mask) {
         tl.fromTo(mask, { x: "-120%" }, { x: "120%", duration: 1.0 }, start + 0.7);
@@ -155,31 +210,21 @@ window.__timelines["news-video"] = tl;
       tl.fromTo(source, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, start + 1.3);
     }
 
-    // ── TikTok follow card animation (last ~3.5s of outro) ──────────────
-    // Adapted from HyperFrames `tiktok-follow` block.
-    // Card lives inside the outro scene (id="tt-card"); slide up + button click sequence.
+    // TikTok follow card
     const ttCard = scene.querySelector("#tt-card");
     if (ttCard) {
-      const ttBtn      = scene.querySelector("#tt-follow-btn");
-      const ttFollow   = scene.querySelector("#tt-btn-follow");
+      const ttBtn = scene.querySelector("#tt-follow-btn");
+      const ttFollow = scene.querySelector("#tt-btn-follow");
       const ttFollwing = scene.querySelector("#tt-btn-following");
-      const ttBase     = start + 1.6;  // start TikTok sequence 1.6s into outro
+      const ttBase = start + 1.6;
 
-      // Slide in from bottom + fade in
-      tl.fromTo(ttCard,
-        { opacity: 0, y: 300 },
-        { opacity: 1, y: 0, duration: 0.5 },
-        ttBase
-      );
+      tl.fromTo(ttCard, { opacity: 0, y: 300 }, { opacity: 1, y: 0, duration: 0.5 }, ttBase);
 
-      // Button press (scale down)
       if (ttBtn) {
         tl.to(ttBtn, { scale: 0.92, duration: 0.15 }, ttBase + 0.9);
-        // Release with slight bounce (use scale up)
         tl.to(ttBtn, { scale: 1, duration: 0.4 }, ttBase + 1.05);
       }
 
-      // Swap "Follow" → "Following" (opacity)
       if (ttFollow) {
         tl.to(ttFollow, { opacity: 0, duration: 0.08 }, ttBase + 1.05);
       }
@@ -187,11 +232,9 @@ window.__timelines["news-video"] = tl;
         tl.to(ttFollwing, { opacity: 1, duration: 0.08 }, ttBase + 1.08);
       }
 
-      // Hold + subtle zoom-in to focus viewer attention on the card.
-      // Slow zoom from scale 1 → 1.08 over the remaining outro duration.
-      const holdStart = ttBase + 1.3;             // after click animation
-      const holdEnd   = start + dur - 0.1;        // ends just before scene ends
-      const holdLen   = Math.max(0.5, holdEnd - holdStart);
+      const holdStart = ttBase + 1.3;
+      const holdEnd = start + dur - 0.1;
+      const holdLen = Math.max(0.5, holdEnd - holdStart);
       tl.to(ttCard, { scale: 1.08, duration: holdLen }, holdStart);
     }
   }

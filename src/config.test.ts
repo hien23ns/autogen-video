@@ -177,4 +177,17 @@ describe("loadConfig", () => {
     process.env.VIETNAMESE_VOICEID = "v";
     expect(() => loadConfig()).toThrow(/TTS_PROVIDER/);
   });
+
+  describe("Theme normalization", () => {
+    it("supports dark, light, and cyberpunk theme options", () => {
+      process.env.VIDEO_THEME = "cyberpunk";
+      expect(loadConfig().videoTheme).toBe("cyberpunk");
+
+      process.env.VIDEO_THEME = "dark";
+      expect(loadConfig().videoTheme).toBe("dark-neon");
+
+      process.env.VIDEO_THEME = "light";
+      expect(loadConfig().videoTheme).toBe("light-pro");
+    });
+  });
 });

@@ -1,7 +1,15 @@
 import "dotenv/config";
 
 export type TtsProvider = "edge-tts" | "lucylab" | "elevenlabs" | "vbee";
-export type VideoTheme = "dark-neon" | "light-pro";
+export type VideoTheme = "dark-neon" | "light-pro" | "cyberpunk";
+
+export function normalizeTheme(raw?: string): VideoTheme {
+  const t = (raw ?? "dark-neon").trim().toLowerCase();
+  if (t === "dark" || t === "dark-neon") return "dark-neon";
+  if (t === "light" || t === "light-pro") return "light-pro";
+  if (t === "cyberpunk" || t === "cyber") return "cyberpunk";
+  throw new Error(`VIDEO_THEME must be "dark-neon", "light-pro", or "cyberpunk", got "${raw}"`);
+}
 
 export interface TiktokConfig {
   displayName: string;
@@ -41,6 +49,9 @@ export interface Config {
   vbeeSpeedRate: number;
   vbeePollIntervalMs: number;
   vbeePollTimeoutMs: number;
+
+  // Gemini API key for automated script generation
+  geminiApiKey?: string;
 
   // TikTok follow card (outro)
   tiktok: TiktokConfig;
@@ -124,13 +135,11 @@ export function loadConfig(): Config {
     }
   }
 
-  const videoTheme = (process.env.VIDEO_THEME ?? "dark-neon") as VideoTheme;
-  if (videoTheme !== "dark-neon" && videoTheme !== "light-pro") {
-    throw new Error(`VIDEO_THEME must be "dark-neon" or "light-pro", got "${videoTheme}"`);
-  }
+  const videoTheme = normalizeTheme(process.env.VIDEO_THEME);
 
   return {
     ttsProvider: provider,
+    geminiApiKey: process.env.GEMINI_API_KEY,
     edgeTtsVoice: process.env.EDGE_TTS_VOICE ?? "vi-VN-HoaiMyNeural",
     edgeTtsRate: process.env.EDGE_TTS_RATE ?? "+0%",
     edgeTtsPitch: process.env.EDGE_TTS_PITCH ?? "+0Hz",

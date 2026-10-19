@@ -3,6 +3,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Script, TemplateDataType } from "./script-schema.js";
 import type { TiktokConfig } from "../config.js";
+import { renderKaraokeHtml } from "./karaoke-timing.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TPL_DIR = join(__dirname, "templates");
@@ -29,7 +30,7 @@ export interface ComposeArgs {
   script: Script;
   sceneAudio: SceneAudio[];
   gapSec: number;
-  bgImageRelPath: string | null;   // null => no image available
+  bgImageRelPath: string | null; // null => no image available
   audioRelPath: string;
   /** TikTok follow card config (injected into outro scene). Optional — defaults used if omitted. */
   tiktok?: TiktokConfig;
@@ -45,8 +46,7 @@ export function composeHtml(args: ComposeArgs): string {
   const tiktokAvatar = args.tiktokAvatarRelPath ?? "tiktok-avatar.jpg";
   const outroHoldSec = args.outroHoldSec ?? 3;
 
-  // Compute timing per scene. Outro scene gets extra HOLD seconds so the
-  // TikTok follow card stays visible after the voice ends.
+  // Compute timing per scene
   let cursor = 0;
   const timing = script.scenes.map((scene) => {
     const audio = sceneAudio.find((a) => a.id === scene.id);
@@ -60,16 +60,18 @@ export function composeHtml(args: ComposeArgs): string {
   const totalDuration = cursor;
 
   // Render scenes
-  const sceneHtml = timing.map(({ scene, start, duration }) => {
-    return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar);
-  }).join("\n");
+  const sceneHtml = timing
+    .map(({ scene, start, duration }) => {
+      return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar, script.metadata);
+    })
+    .join("\n");
 
   // Persistent shell — uses tiktok handle in footer
   const shellHtml = renderShell(script.metadata, tiktok);
 
   const animJs = readFileSync(join(TPL_DIR, "animations.js"), "utf8");
-
   const tpl = readFileSync(join(TPL_DIR, "base.html.tmpl"), "utf8");
+
   return tpl
     .replace("{{TITLE}}", escapeHtml(script.metadata.title))
     .replace(/\{\{TOTAL_DURATION\}\}/g, totalDuration.toFixed(2))
@@ -117,81 +119,63 @@ function renderScene(
   bgImageRelPath: string | null,
   tiktok: TiktokConfig,
   tiktokAvatarRelPath: string,
+  metadata: Script["metadata"],
 ): string {
   const td = scene.templateData;
+  const domain = metadata.source.domain;
 
-  let inner: string;
-  let layoutName: string;
+  let bgHtml = "";
+  let badgeIcon = "⚡";
+  let badgeLabel = "CÔNG NGHỆ 24H";
+  let headline = "";
+  let midInner = "";
+  let layoutName = td.template;
 
   switch (td.template) {
-    case "hook":
-      inner = renderHookInner(td, bgImageRelPath);
+    case "hook": {
       layoutName = "hook";
+      badgeIcon = "🔥";
+      badgeLabel = "TIN NÓNG ĐỘT PHÁ";
+      headline = escapeHtml(td.headline);
+      const subhead = td.subhead ? escapeHtml(td.subhead) : "";
+
+      const hasImage = Boolean(td.bgSrc && bgImageRelPath);
+      if (hasImage) {
+        const kbClass = td.kenBurns ?? "zoom-in";
+        bgHtml = `<div class="bg kb-${kbClass}" style="background-image: url('${bgImageRelPath}')"></div>`;
+      } else {
+        bgHtml = `<div class="bg gradient-news-dark"></div>`;
+      }
+      const overlayHtml = hasImage ? `<div class="overlay" style="opacity: 0.55"></div>` : "";
+
+      // Mid tier inner content (Mockup screen)
+      const scrollHtml = bgImageRelPath
+        ? `<div class="mockup-scroll-track"><img src="${escapeHtml(bgImageRelPath)}" class="mockup-scroll-img" alt="Web Preview" /></div>`
+        : "";
+
+      midInner = renderMockupLaptop(
+        domain,
+        `${scrollHtml}
+        <div class="layout-hook" style="background:rgba(10,18,36,0.65);">
+          <div class="hook-headline shimmer-sweep-target">${headline}</div>
+          ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}
+        </div>`
+      );
+      bgHtml += overlayHtml;
       break;
-    case "comparison":
-      inner = renderComparisonInner(td);
-      layoutName = "comparison";
-      break;
-    case "stat-hero":
-      inner = renderStatHeroInner(td);
-      layoutName = "stat-hero";
-      break;
-    case "feature-list":
-      inner = renderFeatureListInner(td);
-      layoutName = "feature-list";
-      break;
-    case "callout":
-      inner = renderCalloutInner(td);
-      layoutName = "callout";
-      break;
-    case "outro":
-      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath);
-      layoutName = "outro";
-      break;
-    default: {
-      const _never: never = td;
-      throw new Error(`Unknown template: ${(_never as any).template}`);
     }
-  }
 
-  return buildScene(scene, start, duration, layoutName, inner);
-}
+    case "comparison": {
+      layoutName = "comparison";
+      badgeIcon = "⚖️";
+      badgeLabel = "BẢNG SO SÁNH";
+      headline = `${escapeHtml(td.left.label)} VS ${escapeHtml(td.right.label)}`;
 
-// ── HOOK SCENE ─────────────────────────────────────────────────────────────
-function renderHookInner(td: Extract<TemplateDataType, { template: "hook" }>, bgImageRelPath: string | null): string {
-  // Background
-  const hasImage = Boolean(td.bgSrc && bgImageRelPath);
-  let bgHtml: string;
-  if (hasImage) {
-    // Ken Burns image
-    const kbClass = td.kenBurns ?? "zoom-in";
-    bgHtml = `<div class="bg kb-${kbClass}" style="background-image: url('${bgImageRelPath}')"></div>`;
-  } else {
-    bgHtml = `<div class="bg gradient-news-dark"></div>`;
-  }
-  // Only darken when there's a real photo to tame for text legibility —
-  // our own gradient backgrounds are already tuned for contrast, and a flat
-  // black scrim on top of them just muddies the theme's colors (esp. light-pro).
-  const overlayHtml = hasImage ? `<div class="overlay" style="opacity: 0.55"></div>` : "";
+      const lColor = td.left.color;
+      const rColor = td.right.color;
+      const winnerClass = td.right.winner ? " card-winner" : "";
 
-  const headline = escapeHtml(td.headline);
-  const subhead = td.subhead ? escapeHtml(td.subhead) : "";
-
-  return `${bgHtml}
-  ${overlayHtml}
-  <div class="layout-hook">
-    <div class="hook-headline shimmer-sweep-target">${headline}</div>
-    ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}
-  </div>`;
-}
-
-// ── COMPARISON SCENE ───────────────────────────────────────────────────────
-function renderComparisonInner(td: Extract<TemplateDataType, { template: "comparison" }>): string {
-  const lColor = td.left.color;  // "cyan" | "purple"
-  const rColor = td.right.color;
-  const winnerClass = td.right.winner ? " card-winner" : "";
-
-  return `
+      const cmpInner = `
 <div class="layout-comparison">
   <div class="cmp-card cmp-left color-${lColor}">
     <div class="cmp-label">${escapeHtml(td.left.label)}</div>
@@ -203,30 +187,45 @@ function renderComparisonInner(td: Extract<TemplateDataType, { template: "compar
     <div class="cmp-value">${escapeHtml(td.right.value)}</div>
     ${td.right.winner ? '<div class="cmp-winner-badge">WINNER</div>' : ""}
   </div>
-</div>`.trim();
-}
+</div>`;
+      midInner = renderMockupLaptop(domain, cmpInner);
+      break;
+    }
 
-// ── STAT HERO SCENE ────────────────────────────────────────────────────────
-function renderStatHeroInner(td: Extract<TemplateDataType, { template: "stat-hero" }>): string {
-  const context = td.context ? `<div class="stat-context">${escapeHtml(td.context)}</div>` : "";
-  return `
+    case "stat-hero": {
+      layoutName = "stat-hero";
+      badgeIcon = "📊";
+      badgeLabel = "SỐ LIỆU ĐỘT PHÁ";
+      headline = escapeHtml(td.label);
+
+      const context = td.context ? `<div class="stat-context">${escapeHtml(td.context)}</div>` : "";
+      const statInner = `
 <div class="layout-stat-hero">
   <div class="stat-value shimmer-sweep-target">${escapeHtml(td.value)}</div>
   <div class="stat-label">${escapeHtml(td.label)}</div>
   ${context}
-</div>`.trim();
-}
+</div>`;
+      midInner = renderMockupLaptop(domain, statInner);
+      break;
+    }
 
-// ── FEATURE LIST SCENE ─────────────────────────────────────────────────────
-function renderFeatureListInner(td: Extract<TemplateDataType, { template: "feature-list" }>): string {
-  const bullets = td.bullets.map((b, i) =>
-    `<div class="feat-bullet feat-bullet-${i}" data-idx="${i}">
+    case "feature-list": {
+      layoutName = "feature-list";
+      badgeIcon = "🚀";
+      badgeLabel = "TÍNH NĂNG NỔI BẬT";
+      headline = escapeHtml(td.title);
+
+      const bullets = td.bullets
+        .map(
+          (b, i) =>
+            `<div class="feat-bullet feat-bullet-${i}" data-idx="${i}">
       <div class="feat-dot"></div>
       <div class="feat-text">${escapeHtml(b)}</div>
     </div>`
-  ).join("\n    ");
+        )
+        .join("\n    ");
 
-  return `
+      const featInner = `
 <div class="layout-feature-list">
   <div class="feat-card">
     <div class="feat-title">${escapeHtml(td.title)}</div>
@@ -235,43 +234,122 @@ function renderFeatureListInner(td: Extract<TemplateDataType, { template: "featu
       ${bullets}
     </div>
   </div>
-</div>`.trim();
-}
+</div>`;
+      midInner = renderMockupLaptop(domain, featInner);
+      break;
+    }
 
-// ── CALLOUT SCENE ──────────────────────────────────────────────────────────
-function renderCalloutInner(td: Extract<TemplateDataType, { template: "callout" }>): string {
-  const tag = td.tag ? `<div class="callout-tag">${escapeHtml(td.tag)}</div>` : "";
-  return `
+    case "callout": {
+      layoutName = "callout";
+      badgeIcon = "💡";
+      badgeLabel = td.tag ? escapeHtml(td.tag) : "TIÊU ĐIỂM CHÚ Ý";
+      headline = td.tag ? escapeHtml(td.tag) : "ĐIỂM NHẤN CÔNG NGHỆ";
+
+      const tag = td.tag ? `<div class="callout-tag">${escapeHtml(td.tag)}</div>` : "";
+      const calloutInner = `
 <div class="layout-callout">
   <div class="callout-card">
     ${tag}
     <div class="callout-statement">${escapeHtml(td.statement)}</div>
   </div>
-</div>`.trim();
-}
+</div>`;
+      midInner = renderMockupLaptop(domain, calloutInner);
+      break;
+    }
 
-// ── OUTRO SCENE ────────────────────────────────────────────────────────────
-function renderOutroInner(
-  td: Extract<TemplateDataType, { template: "outro" }>,
-  tiktok: TiktokConfig,
-  avatarRelPath: string,
-): string {
-  const ttCard = renderTiktokCard(tiktok, avatarRelPath);
-  return `
+    case "outro": {
+      layoutName = "outro";
+      badgeIcon = "🔔";
+      badgeLabel = "THEO DÕI NGAY";
+      headline = escapeHtml(td.ctaTop);
+
+      const ttCard = renderTiktokCard(tiktok, tiktokAvatarRelPath);
+      const outroInner = `
 <div class="layout-outro">
   <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>
   <div class="out-channel">${escapeHtml(td.channelName)}</div>
   <div class="out-underline"></div>
   <div class="out-source">Nguồn: ${escapeHtml(td.source)}</div>
 </div>
-${ttCard}`.trim();
+${ttCard}`;
+      midInner = renderMockupLaptop(domain, outroInner);
+      break;
+    }
+  }
+
+  // Top Tier: Badge + Headline
+  const topTierHtml = `
+<div class="tier-top-badge">
+  <span class="badge-icon">${badgeIcon}</span>
+  <span class="badge-text">${badgeLabel}</span>
+</div>
+<h1 class="tier-top-headline shimmer-sweep-target">${headline}</h1>`.trim();
+
+  // Bottom Tier: Dynamic Karaoke Subtitles
+  const karaokeHtml = renderKaraokeHtml({
+    sceneId: scene.id,
+    text: scene.voiceText,
+    sceneStartSec: start,
+    durationSec: duration,
+  });
+
+  // Dynamic mesh gradient background
+  const meshBg = `
+<div class="dynamic-mesh-bg">
+  <div class="mesh-orb mesh-orb-1"></div>
+  <div class="mesh-orb mesh-orb-2"></div>
+  <div class="mesh-orb mesh-orb-3"></div>
+  <div class="tech-grid-overlay"></div>
+</div>`;
+
+  return `
+<div class="scene clip" id="scene-${scene.id}"
+     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-active="0"
+     data-layout="${layoutName}">
+  ${meshBg}
+  ${bgHtml}
+  <div class="scene-stacked">
+    <div class="tier-top">
+      ${topTierHtml}
+    </div>
+    <div class="tier-mid">
+      ${midInner}
+    </div>
+    <div class="tier-bot">
+      ${karaokeHtml}
+    </div>
+  </div>
+</div>`.trim();
 }
 
-/**
- * TikTok follow card — adapted from HyperFrames `tiktok-follow` block.
- * Slides up from bottom mid-outro. Animations are added by animations.js
- * targeting elements with id="tt-card", id="tt-follow-btn", etc.
- */
+// ── MOCKUP RENDERING ───────────────────────────────────────────────────────
+function renderMockupLaptop(domain: string, innerScreenHtml: string): string {
+  return `
+<div class="mockup-laptop">
+  <div class="mockup-laptop-lid">
+    <div class="mockup-laptop-notch">
+      <div class="mockup-laptop-camera"></div>
+    </div>
+    <div class="mockup-browser-header">
+      <div class="mockup-browser-dots">
+        <span class="mockup-dot red"></span>
+        <span class="mockup-dot yellow"></span>
+        <span class="mockup-dot green"></span>
+      </div>
+      <div class="mockup-browser-address">
+        <span class="lock-icon">🔒</span>
+        <span>https://${escapeHtml(domain || "github.com")}</span>
+      </div>
+    </div>
+    <div class="mockup-laptop-screen">
+      ${innerScreenHtml}
+    </div>
+  </div>
+  <div class="mockup-laptop-base"></div>
+</div>`.trim();
+}
+
+// ── TIKTOK FOLLOW CARD ─────────────────────────────────────────────────────
 function renderTiktokCard(tiktok: TiktokConfig, avatarRelPath: string): string {
   return `
 <div id="tt-card" class="tt-card">
@@ -291,24 +369,11 @@ function renderTiktokCard(tiktok: TiktokConfig, avatarRelPath: string): string {
 </div>`.trim();
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
-function buildScene(
-  scene: Script["scenes"][number],
-  start: number,
-  duration: number,
-  layoutName: string,
-  innerHtml: string,
-): string {
-  return `
-<div class="scene clip" id="scene-${scene.id}"
-     data-start="${start.toFixed(2)}" data-duration="${duration.toFixed(2)}" data-active="0"
-     data-layout="${layoutName}">
-  ${innerHtml}
-</div>`.trim();
-}
-
 function escapeHtml(s: string): string {
   return s
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }

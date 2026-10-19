@@ -605,3 +605,425 @@ html, body {
 
 .tt-check-icon { display: inline-block; width: 22px; height: 22px; }
 .tt-check-icon svg { width: 22px; height: 22px; display: block; }
+
+/* ============================================================
+   3-TIER STACKED LAYOUT (Light Pro Edition - 9:16 1080x1920)
+   ============================================================ */
+.scene-stacked {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 130px 48px 140px;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+/* ── TIER TOP (20%) ────────────────────────────────────────── */
+.tier-top {
+  width: 100%;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 20;
+}
+
+.tier-top-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 28px;
+  border-radius: 50px;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  margin-bottom: 20px;
+}
+
+.tier-top-badge .badge-icon {
+  font-size: 26px;
+}
+
+.tier-top-badge .badge-text {
+  font-family: 'Montserrat', 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #1d4ed8;
+}
+
+.tier-top-headline {
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #0f172a;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* ── TIER MID (50%): MOCKUP DISPLAY ────────────────────────── */
+.tier-mid {
+  width: 100%;
+  height: 860px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 15;
+}
+
+.mockup-laptop {
+  position: relative;
+  width: 940px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 20px 45px rgba(15, 23, 42, 0.2)) drop-shadow(0 0 30px rgba(37, 99, 235, 0.15));
+}
+
+.mockup-laptop-lid {
+  width: 900px;
+  height: 560px;
+  background: #f8fafc;
+  border-radius: 24px 24px 8px 8px;
+  border: 3px solid #cbd5e1;
+  box-shadow: inset 0 0 0 1px #e2e8f0, 0 10px 30px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mockup-laptop-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 20px;
+  background: #0f172a;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mockup-laptop-camera {
+  width: 7px;
+  height: 7px;
+  background: #1e293b;
+  border: 1px solid #38bdf8;
+  border-radius: 50%;
+}
+
+.mockup-browser-header {
+  height: 44px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 12px;
+  z-index: 25;
+}
+
+.mockup-browser-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.mockup-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.mockup-dot.red { background: #ff5f56; }
+.mockup-dot.yellow { background: #ffbd2e; }
+.mockup-dot.green { background: #27c93f; }
+
+.mockup-browser-address {
+  flex: 1;
+  height: 28px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  font-family: 'Inter', monospace;
+  font-size: 13px;
+  color: #475569;
+}
+
+.mockup-browser-address .lock-icon {
+  font-size: 11px;
+  color: #16a34a;
+}
+
+.mockup-laptop-screen {
+  flex: 1;
+  width: 100%;
+  background: #ffffff;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mockup-laptop-base {
+  width: 960px;
+  height: 18px;
+  background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 50%, #94a3b8 100%);
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.mockup-laptop-base::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 6px;
+  background: #64748b;
+  border-radius: 0 0 8px 8px;
+}
+
+.mockup-phone {
+  position: relative;
+  width: 440px;
+  height: 820px;
+  background: #ffffff;
+  border-radius: 56px;
+  border: 4px solid #cbd5e1;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mockup-phone-island {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130px;
+  height: 32px;
+  background: #0f172a;
+  border-radius: 20px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+}
+
+.mockup-phone-island .island-cam {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #1e1b4b;
+  border: 1px solid #6366f1;
+}
+
+.mockup-phone-screen {
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mockup-scroll-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+}
+
+.mockup-scroll-img {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* ── TIER BOT (30%): KARAOKE SUBTITLES ─────────────────────── */
+.tier-bot {
+  width: 100%;
+  height: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.tier-bot-karaoke {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.karaoke-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 30px;
+  margin-bottom: 14px;
+}
+
+.karaoke-badge .karaoke-mic {
+  font-size: 16px;
+}
+
+.karaoke-badge .karaoke-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.karaoke-display-box {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid rgba(203, 213, 225, 0.6);
+  border-radius: 28px;
+  padding: 24px 32px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.k-chunk {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.k-chunk.active {
+  opacity: 1;
+  transform: translateY(0);
+  position: relative;
+}
+
+.k-chunk-inner {
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  color: rgba(51, 65, 85, 0.7);
+  letter-spacing: -0.01em;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.k-word {
+  display: inline-block;
+  color: rgba(71, 85, 105, 0.65);
+  transition: color 0.12s ease, transform 0.12s ease;
+  transform-origin: center bottom;
+  padding: 2px 4px;
+}
+
+.k-word.k-active {
+  color: #2563eb;
+  transform: scale(1.15);
+  text-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.1);
+  border-radius: 8px;
+}
+
+.k-word.k-done {
+  color: #0f172a;
+  transform: scale(1.0);
+}
+
+.dynamic-mesh-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.mesh-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  pointer-events: none;
+}
+
+.mesh-orb-1 {
+  width: 850px;
+  height: 850px;
+  top: -180px;
+  left: -180px;
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.5) 0%, transparent 70%);
+  animation: mesh-drift-1 18s ease-in-out infinite alternate;
+}
+
+.mesh-orb-2 {
+  width: 800px;
+  height: 800px;
+  bottom: -120px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(199, 210, 254, 0.5) 0%, transparent 70%);
+  animation: mesh-drift-2 22s ease-in-out infinite alternate;
+}
+
+.mesh-orb-3 {
+  width: 650px;
+  height: 650px;
+  top: 40%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(224, 231, 255, 0.6) 0%, transparent 70%);
+  animation: mesh-drift-3 15s ease-in-out infinite alternate;
+}
+

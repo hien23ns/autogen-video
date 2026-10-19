@@ -98,4 +98,40 @@ describe("composeHtml", () => {
     expect(html).toContain('class="bg gradient-news-dark"');
     expect(html).not.toContain("background-image: url");
   });
+
+  it("renders 3-tier stacked layout with mockups and karaoke subtitles", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-with-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 4.5 }));
+    const html = composeHtml({
+      script,
+      sceneAudio,
+      gapSec: 0.3,
+      bgImageRelPath: "images/bg.jpg",
+      audioRelPath: "voice.mp3",
+    });
+
+    // 3-Tier Layout containers
+    expect(html).toContain('class="scene-stacked"');
+    expect(html).toContain('class="tier-top"');
+    expect(html).toContain('class="tier-mid"');
+    expect(html).toContain('class="tier-bot"');
+
+    // Tier Top: Badge & Headline
+    expect(html).toContain('class="tier-top-badge"');
+    expect(html).toContain('class="tier-top-headline shimmer-sweep-target"');
+
+    // Tier Mid: Laptop Mockup & Auto-scroll track
+    expect(html).toContain('class="mockup-laptop"');
+    expect(html).toContain('class="mockup-scroll-track"');
+
+    // Tier Bot: Karaoke Subtitles
+    expect(html).toContain('class="tier-bot-karaoke"');
+    expect(html).toContain('class="k-chunk"');
+    expect(html).toContain('class="k-word"');
+
+    // Dynamic Mesh Background
+    expect(html).toContain('class="dynamic-mesh-bg"');
+    expect(html).toContain('class="mesh-orb mesh-orb-1"');
+  });
 });
+

@@ -1,0 +1,120 @@
+name: Render Video 24/7 (Webhook / Repository Dispatch)
+
+on:
+  repository_dispatch:
+    types: [render_video, create_video]
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Link bài viết hoặc GitHub Repo cần tạo video"
+        required: true
+        default: "https://github.com/facebook/react"
+      chat_id:
+        description: "Telegram Chat ID nhận video hoàn tất"
+        required: true
+      theme:
+        description: "Tuỳ chọn theme (dark / light / cyberpunk)"
+        required: false
+        default: "cyberpunk"
+
+jobs:
+  render_and_send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Setup Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install System Dependencies (FFmpeg & Vietnamese Fonts)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation fonts-noto-color-emoji
+          fc-cache -f -v
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Resolve Webhook Payload Parameters
+        id: payload
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            URL="${{ github.event.client_payload.url }}"
+            CHAT_ID="${{ github.event.client_payload.chat_id }}"
+            THEME="${{ github.event.client_payload.theme || 'cyberpunk' }}"
+          else
+            URL="${{ github.event.inputs.url }}"
+            CHAT_ID="${{ github.event.inputs.chat_id }}"
+            THEME="${{ github.event.inputs.theme }}"
+          fi
+
+          if [ -z "$URL" ]; then
+            echo "::error::Thiếu tham số 'url' trong payload!"
+            exit 1
+          fi
+
+          if [ -z "$CHAT_ID" ]; then
+            echo "::error::Thiếu tham số 'chat_id' trong payload!"
+            exit 1
+          fi
+
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "chat_id=$CHAT_ID" >> $GITHUB_OUTPUT
+          echo "theme=$THEME" >> $GITHUB_OUTPUT
+          echo "Rendering URL: $URL | Theme: $THEME | Telegram Chat ID: $CHAT_ID"
+
+      - name: Run Video Generation Pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TTS_PROVIDER: edge-tts
+        run: |
+          mkdir -p output
+          npx tsx src/cli.ts \
+            --url "${{ steps.payload.outputs.url }}" \
+            --output "output/video.mp4" \
+            --theme "${{ steps.payload.outputs.theme }}"
+
+      - name: Send Video to Telegram via Bot API
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ steps.payload.outputs.chat_id }}
+          SOURCE_URL: ${{ steps.payload.outputs.url }}
+        run: |
+          echo "Sending video to Telegram chat $CHAT_ID..."
+          CAPTION="🎬 Video tin tức công nghệ đã được render tự động!%0ANguồn: ${SOURCE_URL}"
+          
+          RESPONSE=$(curl -s -S -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVideo" \
+            -F "chat_id=${CHAT_ID}" \
+            -F "video=@output/video.mp4" \
+            -F "caption=🎬 Video tin tức công nghệ đã render thành công từ nguồn: ${SOURCE_URL}" \
+            -F "supports_streaming=true")
+          
+          echo "Telegram API Response: $RESPONSE"
+          
+          # Check if Telegram returned ok: true
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            echo "Gửi video về Telegram thành công!"
+          else
+            echo "::error::Gửi video về Telegram thất bại: $RESPONSE"
+            exit 1
+          fi
+
+      - name: Upload Output Video as Run Artifact (Backup)
+        if: always() && hashFiles('output/video.mp4') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-video
+          path: output/video.mp4
+          retention-days: 7

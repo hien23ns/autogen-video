@@ -3,7 +3,8 @@ import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import pLimit from "p-limit";
 import { ScriptSchema, type Script } from "./render/script-schema.js";
-import { loadConfig } from "./config.js";
+import { loadConfig, type VideoTheme } from "./config.js";
+import { toSlug } from "./utils/slug.js";
 import { createTtsClient } from "./tts/tts-client.js";
 import { fetchImage } from "./assets/image-fetcher.js";
 import { getDurationSec, concatWithSilence, mixSfxOntoVoice, type SfxMixSpec } from "./assets/audio-tools.js";
@@ -40,23 +41,61 @@ const HYPERFRAMES_CONFIG = {
   },
 };
 
-export async function runPipeline(scriptPath: string): Promise<void> {
+export interface PipelineRunOptions {
+  scriptPath?: string;
+  scriptData?: Script;
+  outputDir?: string;
+  outputVideoPath?: string;
+  theme?: VideoTheme;
+}
+
+export interface PipelineResult {
+  videoPath: string;
+  audioPath: string;
+  scriptPath: string;
+  outputDir: string;
+  durationSec: number;
+}
+
+export async function runPipeline(input: string | PipelineRunOptions): Promise<PipelineResult> {
+  const opts: PipelineRunOptions = typeof input === "string" ? { scriptPath: input } : input;
   const cfg = loadConfig();
-  const outputDir = dirname(scriptPath);
+
+  let script: Script;
+  let outputDir: string;
+
+  if (opts.scriptData) {
+    script = ScriptSchema.parse(opts.scriptData);
+    if (!opts.outputDir) {
+      const now = new Date();
+      const ts = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
+      const slug = toSlug(script.metadata.title);
+      outputDir = join("output", `${slug}-${ts}`);
+    } else {
+      outputDir = opts.outputDir;
+    }
+    await mkdir(outputDir, { recursive: true });
+    await writeFile(join(outputDir, "script.json"), JSON.stringify(script, null, 2));
+  } else if (opts.scriptPath) {
+    outputDir = opts.outputDir || dirname(opts.scriptPath);
+    await mkdir(outputDir, { recursive: true });
+    const raw = JSON.parse(await readFile(opts.scriptPath, "utf8"));
+    if (raw.voice?.voiceId === "${VIETNAMESE_VOICEID}" || raw.voice?.voiceId === "${VOICE_ID}") {
+      raw.voice.voiceId =
+        cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
+        : cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
+        : cfg.ttsProvider === "elevenlabs" ? cfg.elevenlabsVoiceId!
+        : cfg.vbeeVoiceCode;
+    }
+    script = ScriptSchema.parse(raw);
+  } else {
+    throw new Error("Must provide either scriptPath or scriptData to runPipeline");
+  }
+
   log.info(`Output directory: ${outputDir}`);
 
   // STEP 1
   log.step(1, TOTAL_STEPS, `Load env + validate script.json (TTS provider: ${cfg.ttsProvider})`);
-  const raw = JSON.parse(await readFile(scriptPath, "utf8"));
-  // Substitute env placeholder before validation (works for all providers)
-  if (raw.voice?.voiceId === "${VIETNAMESE_VOICEID}" || raw.voice?.voiceId === "${VOICE_ID}") {
-    raw.voice.voiceId =
-      cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
-      : cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
-      : cfg.ttsProvider === "elevenlabs" ? cfg.elevenlabsVoiceId!
-      : cfg.vbeeVoiceCode;
-  }
-  const script: Script = ScriptSchema.parse(raw);
 
   // STEP 2
   log.step(2, TOTAL_STEPS, "Write script.txt for CapCut");
@@ -233,7 +272,11 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   // Copy templates next to the index.html so relative paths resolve.
   // base.html.tmpl + animations.js are shared across themes (structure/behavior);
   // only styles.<theme>.css differs (visual look), and always lands as "styles.css".
-  const themeFile = cfg.videoTheme === "light-pro" ? "styles.light-pro.css" : "styles.css";
+  const selectedTheme = opts.theme || cfg.videoTheme;
+  const themeFile =
+    selectedTheme === "light-pro" ? "styles.light-pro.css"
+    : selectedTheme === "cyberpunk" ? "styles.cyberpunk.css"
+    : "styles.css";
   await copyFile(join(TPL_DIR, themeFile),       join(outputDir, "styles.css"));
   await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
 
@@ -242,11 +285,28 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   const videoPath = join(outputDir, "video.mp4");
   await renderWithHyperframes({ compositionDir: outputDir, outputPath: videoPath });
 
+  let finalVideoPath = videoPath;
+  if (opts.outputVideoPath) {
+    const finalDir = dirname(opts.outputVideoPath);
+    await mkdir(finalDir, { recursive: true });
+    await copyFile(videoPath, opts.outputVideoPath);
+    finalVideoPath = opts.outputVideoPath;
+    log.info(`Copied output video to: ${finalVideoPath}`);
+  }
+
   // STEP 8
   log.step(8, TOTAL_STEPS, "Done");
   console.log("\n=== Result ===");
-  console.log(`Video:  ${videoPath}`);
+  console.log(`Video:  ${finalVideoPath}`);
   console.log(`Audio:  ${voiceMp3}  (cho CapCut)`);
   console.log(`Script: ${join(outputDir, "script.txt")}  (cho CapCut auto-caption)`);
   console.log(`Tong thoi luong: ${totalAudioSec.toFixed(2)}s`);
+
+  return {
+    videoPath: finalVideoPath,
+    audioPath: voiceMp3,
+    scriptPath: join(outputDir, "script.txt"),
+    outputDir,
+    durationSec: totalAudioSec,
+  };
 }
