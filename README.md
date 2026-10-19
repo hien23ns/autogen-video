@@ -6,11 +6,11 @@
 
 ### 🚀 Biến URL bài báo & Repo GitHub thành Video ngắn 9:16 chuyên nghiệp
 
-**1 câu lệnh với AI Coding· 0đ Voice (Edge TTS) · Không cần edit thủ công · Sẵn sàng đăng TikTok, Reels, Shorts**
+**1 câu lệnh với AI Coding · 0đ Voice (Edge TTS) · Không cần edit thủ công · Sẵn sàng đăng TikTok, Reels, Shorts**
 
-[![Stars](https://img.shields.io/github/stars/Cuongyd196/auto-video-gen?style=for-the-badge&logo=github&color=yellow)](https://github.com/Cuongyd196/auto-video-gen/stargazers)
-[![Forks](https://img.shields.io/github/forks/Cuongyd196/auto-video-gen?style=for-the-badge&logo=github&color=blue)](https://github.com/Cuongyd196/auto-video-gen/network/members)
-[![License](https://img.shields.io/github/license/Cuongyd196/auto-video-gen?style=for-the-badge&color=green)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/hien23ns/autogen-video?style=for-the-badge&logo=github&color=yellow)](https://github.com/hien23ns/autogen-video/stargazers)
+[![Forks](https://img.shields.io/github/forks/hien23ns/autogen-video?style=for-the-badge&logo=github&color=blue)](https://github.com/hien23ns/autogen-video/network/members)
+[![License](https://img.shields.io/github/license/hien23ns/autogen-video?style=for-the-badge&color=green)](LICENSE)
 [![Node](https://img.shields.io/badge/node-22%2B-brightgreen?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/typescript-5%2B-blue?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
@@ -65,144 +65,8 @@ Dự án sử dụng cơ chế **Agentic Video Generation**:
 
 ```bash
 # Clone repository
-git clone https://github.com/Cuongyd196/auto-video-gen.git
-cd auto-video-gen
+git clone [https://github.com/hien23ns/autogen-video.git](https://github.com/hien23ns/autogen-video.git)
+cd autogen-video
 
 # Cài đặt dependencies
 npm install
-```
-
-> **Cài đặt FFmpeg nếu máy chưa có:**
-> - **Windows:** `winget install Gyan.FFmpeg`
-> - **macOS:** `brew install ffmpeg`
-> - **Linux:** `sudo apt install ffmpeg`
-
-### 2. Thiết lập cấu hình
-
-Tạo file môi trường từ file mẫu:
-
-```bash
-cp .env.example .env.local
-```
-
-> 💡 **Mặc định dự án cấu hình Edge TTS hoàn toàn miễn phí, không cần bất kỳ API key nào.** Bạn có thể tạo video ngay lập tức!
-> 
-> *(Nếu muốn dùng LucyLab, Vbee hoặc ElevenLabs, mở file `.env.local` và điền key tương ứng).*
-
-### 3. Tạo video đầu tiên!
-
-#### 🤖 Cách 1: Tự động hoàn toàn bằng AI Agent (Khuyên dùng)
-
-##### 👉 Với Google Antigravity IDE
-Mở project trong Antigravity IDE, tại khung chat gõ lệnh:
-```text
-/create-news-video https://github.com/Cuongyd196/auto-compare-video
-```
-
-##### 👉 Với Anthropic Claude Code
-Mở terminal tại thư mục dự án và chạy:
-```bash
-claude
-# Trong màn hình tương tác Claude Code, gõ:
-/create-news-video https://github.com/Cuongyd196/auto-compare-video
-```
-
-> 💡 **Quy trình AI tự động xử lý:**
-> 1. Đọc nội dung từ URL (repo GitHub, bài báo) hoặc file .txt tiếng Việt.
-> 2. Viết lời bình tiếng Việt chuẩn ngữ âm, chia cảnh và chọn template motion graphics.
-> 3. Tự gọi pipeline: sinh voice (Edge TTS Free) + render HyperFrames + mix nhạc & SFX.
-> 4. Xuất video `.mp4` cùng file `caption.txt` có sẵn hashtag đăng TikTok!
-
-#### 🛠️ Cách 2: Render trực tiếp từ file kịch bản (Thủ công)
-
-Nếu không dùng AI, bạn có thể render từ file mẫu hoặc file `script.json` tự viết:
-
-```bash
-npm run pipeline -- tests/fixtures/sample-script-no-image.json
-```
-
-🎉 **Kết quả**: Video thành phẩm sẽ được lưu tại `output/<slug>/<slug>.mp4`.
-
----
-
-## 🎙️ Lựa chọn giọng đọc (TTS)
-
-Chuyển đổi provider linh hoạt trong `.env.local` qua biến `TTS_PROVIDER`:
-
-| Nhà cung cấp | Cấu hình | Chi phí | Đặc điểm |
-| :--- | :--- | :--- | :--- |
-| **Edge TTS** *(Mặc định)* | `TTS_PROVIDER=edge-tts` | **0đ (Miễn phí)** | Không cần API key, hỗ trợ giọng Nam/Nữ tiếng Việt tự nhiên |
-| **LucyLab** | `TTS_PROVIDER=lucylab` | Rẻ (~25k/1M ký tự) | Giọng voice cloning tiếng Việt tự nhiên, tự động kèm SRT subtitle |
-| **Vbee** | `TTS_PROVIDER=vbee` | Trả phí Vbee API | Giọng đọc truyền cảm, chuẩn phong cách phát thanh viên tin tức |
-| **ElevenLabs** | `TTS_PROVIDER=elevenlabs` | Trả phí ElevenLabs | Đa ngôn ngữ, chất lượng phòng thu điện ảnh, tuỳ biến cao |
-
----
-
-## 🛠️ Các lệnh thường dùng (CLI Cheatsheet)
-
-```bash
-# Chạy toàn bộ pipeline (TTS + Render visuals + Audio Mix)
-npm run pipeline -- output/<slug>/script.json
-
-# Chỉ render lại hình ảnh (giữ nguyên voice đã tạo, tiết kiệm thời gian)
-npm run rerender -- output/<slug>
-
-# Chạy test kiểm thử toàn bộ hệ thống
-npm test
-```
-
----
-
-## 📂 Cấu trúc thư mục dự án
-
-```text
-auto-video-gen/
-├── .claude/skills/        # Claude Code skill tạo kịch bản tự động
-├── src/
-│   ├── config.ts          # Đọc & validate biến môi trường (.env)
-│   ├── pipeline.ts        # Pipeline chính: TTS -> HyperFrames -> FFmpeg
-│   ├── schema.ts          # Zod schema định nghĩa cấu trúc kịch bản video
-│   ├── render/            # Template HTML/CSS/GSAP & HyperFrames composer
-│   ├── tts/               # Bộ kết nối TTS (Edge TTS, Vbee, ElevenLabs)
-│   └── audio/             # Ghép âm thanh, SFX, căn chỉnh timing bằng FFmpeg
-├── tests/                 # Unit tests (Vitest)
-├── output/                # Thư mục lưu video thành phẩm theo từng slug
-├── README.full.md         # 📖 Tài liệu hướng dẫn chi tiết toàn bộ dự án
-└── README.en.md           # 🇬🇧 English Documentation
-```
-
----
-
-## 📖 Tài liệu chuyên sâu
-
-Để tìm hiểu chi tiết hơn, vui lòng xem [**README.full.md**](README.full.md):
-- [Cấu trúc chi tiết của file kịch bản `script.json`](README.full.md#-cấu-trúc-scriptjson)
-- [Hướng dẫn tùy biến màu sắc, font chữ và animation CSS](README.full.md#-tùy-biến-giao-diện-theme--css)
-- [Bảng ước tính chi phí chi tiết](README.full.md#-ước-tính-chi-phí)
-- [Bảng tra cứu và xử lý sự cố (Troubleshooting)](README.full.md#-xử-lý-sự-cố-thường-gặp)
-- [Giải đáp các câu hỏi thường gặp (FAQ)](README.full.md#-faq)
-
----
-
-## 💬 Cộng đồng & Các mẫu tạo video khác
-
-Xem các mẫu tạo video khác tại:
-
-- Link repo tạo video từ 1 chủ đề với Remotion: 🔗 [github.com/Cuongyd196/remotion-cuongit-template](https://github.com/Cuongyd196/remotion-cuongit-template)
-- Link tạo video so sánh kiến thức: 🔗 [github.com/Cuongyd196/auto-compare-video](https://github.com/Cuongyd196/auto-compare-video)
-
-Mình tạo nhóm này cho các bạn trao đổi về Làm Video với AI nhé.  
-Với các repo mình công khai, có vướng mắc mình sẽ giải đáp cho các bạn.
-
-- 👥 Nhóm trên Facebook: [facebook.com/groups/1010029065373486](https://www.facebook.com/groups/1010029065373486/)
-- 👥 Nhóm trên Zalo: [zalo.me/g/8bfeotyh5ewtkzxmp5gt](https://zalo.me/g/8bfeotyh5ewtkzxmp5gt)
-
-Nếu hữu ích với các bạn thì cho mình 1 star GitHub nhé 🌟
-
----
-
-## 📜 License & Lời cảm ơn
-
-- Dự án phát hành theo giấy phép [MIT](LICENSE).
-- Dự án là bản fork và phát triển mở rộng từ tác phẩm gốc của tác giả [Ho Quang Hai](https://github.com/hoquanghai/Auto-Create-Video).
-- Bản cập nhật & duy trì bởi [CuongIT](https://www.facebook.com/cuongit96).
