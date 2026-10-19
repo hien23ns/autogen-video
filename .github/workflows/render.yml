@@ -59,15 +59,23 @@ jobs:
 
       - name: Resolve Webhook Payload Parameters
         id: payload
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_URL: ${{ github.event.client_payload.url }}
+          DISPATCH_CHAT: ${{ github.event.client_payload.chat_id }}
+          DISPATCH_THEME: ${{ github.event.client_payload.theme }}
+          INPUT_URL: ${{ github.event.inputs.url }}
+          INPUT_CHAT: ${{ github.event.inputs.chat_id }}
+          INPUT_THEME: ${{ github.event.inputs.theme }}
         run: |
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            URL="${{ github.event.client_payload.url }}"
-            CHAT_ID="${{ github.event.client_payload.chat_id }}"
-            THEME="${{ github.event.client_payload.theme || 'cyberpunk' }}"
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            URL="$DISPATCH_URL"
+            CHAT_ID="$DISPATCH_CHAT"
+            THEME="${DISPATCH_THEME:-cyberpunk}"
           else
-            URL="${{ github.event.inputs.url }}"
-            CHAT_ID="${{ github.event.inputs.chat_id }}"
-            THEME="${{ github.event.inputs.theme }}"
+            URL="$INPUT_URL"
+            CHAT_ID="$INPUT_CHAT"
+            THEME="${INPUT_THEME:-cyberpunk}"
           fi
 
           if [ -z "$URL" ]; then
@@ -80,9 +88,9 @@ jobs:
             exit 1
           fi
 
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "chat_id=$CHAT_ID" >> $GITHUB_OUTPUT
-          echo "theme=$THEME" >> $GITHUB_OUTPUT
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "chat_id=$CHAT_ID" >> "$GITHUB_OUTPUT"
+          echo "theme=$THEME" >> "$GITHUB_OUTPUT"
           echo "Rendering URL: $URL | Theme: $THEME | Telegram Chat ID: $CHAT_ID"
 
       - name: Run Video Generation Pipeline
@@ -96,12 +104,14 @@ jobs:
           TIKTOK_HANDLE: "@codesuy24h"
           PYTHONUTF8: "1"
           PYTHONIOENCODING: "utf-8"
+          SOURCE_URL: ${{ steps.payload.outputs.url }}
+          VIDEO_THEME: ${{ steps.payload.outputs.theme }}
         run: |
           mkdir -p output
           npx tsx src/cli.ts \
-            --url "${{ steps.payload.outputs.url }}" \
+            --url "$SOURCE_URL" \
             --output "output/video.mp4" \
-            --theme "${{ steps.payload.outputs.theme }}"
+            --theme "$VIDEO_THEME"
 
       - name: Send Video to Telegram via Bot API
         env:
@@ -110,19 +120,16 @@ jobs:
           SOURCE_URL: ${{ steps.payload.outputs.url }}
         run: |
           echo "Sending video to Telegram chat $CHAT_ID..."
-          CAPTION="🎬 Video tin tức công nghệ đã render thành công!
-🔗 Nguồn: ${SOURCE_URL}
-✨ Kênh: Code Suy 24h 🔱 (@codesuy24h)"
-          
+          CAPTION=$(printf '🎬 Video tin tức công nghệ đã render thành công!\n🔗 Nguồn: %s\n✨ Kênh: Code Suy 24h 🔱 (@codesuy24h)' "$SOURCE_URL")
+
           RESPONSE=$(curl -s -S -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVideo" \
             -F "chat_id=${CHAT_ID}" \
             -F "video=@output/video.mp4" \
             --form-string "caption=${CAPTION}" \
             -F "supports_streaming=true")
-          
+
           echo "Telegram API Response: $RESPONSE"
-          
-          # Check if Telegram returned ok: true
+
           if echo "$RESPONSE" | grep -q '"ok":true'; then
             echo "Gửi video về Telegram thành công!"
           else
