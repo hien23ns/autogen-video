@@ -218,7 +218,7 @@ window.__timelines["news-video"] = tl;
       const ttFollwing = scene.querySelector("#tt-btn-following");
       const ttBase = start + 1.6;
 
-      tl.fromTo(ttCard, { opacity: 0, y: 300 }, { opacity: 1, y: 0, duration: 0.5 }, ttBase);
+      tl.fromTo(ttCard, { opacity: 0, y: 80, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5 }, ttBase);
 
       if (ttBtn) {
         tl.to(ttBtn, { scale: 0.92, duration: 0.15 }, ttBase + 0.9);

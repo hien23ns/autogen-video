@@ -129,10 +129,6 @@ export function renderKaraokeHtml(options: GenerateKaraokeOptions): string {
     .join("\n");
 
   return `<div class="tier-bot-karaoke" id="karaoke-${sceneId}">
-  <div class="karaoke-badge">
-    <span class="karaoke-mic">🎙️</span>
-    <span class="karaoke-label">AUDIO SUBTITLES</span>
-  </div>
   <div class="karaoke-display-box">
     ${chunksHtml}
   </div>

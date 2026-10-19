@@ -217,358 +217,349 @@ html, body {
   background: radial-gradient(ellipse at center, transparent 45%, rgba(4,8,16,0.55) 100%);
 }
 
-/* ── LAYOUT: HOOK ────────────────────────────────────────────── */
-.layout-hook {
-  position: absolute; inset: 0; z-index: 5;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 200px 80px 300px;
-  text-align: center;
-}
-
-/* Soft spotlight behind the headline so it pops off the flat background */
-.layout-hook::before {
-  content: ""; position: absolute; z-index: -1;
-  left: 50%; top: 50%; width: 900px; height: 900px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(124,58,237,0.4) 0%, transparent 65%);
-  filter: blur(80px);
-  pointer-events: none;
-}
-
+/* ── TIER MID INNER LAYOUTS (Hook, Stat, Feature, Cmp, Callout, Outro) ───── */
 .hook-headline {
-  font-family: 'Anton', 'Inter', sans-serif;
-  font-size: 160px; font-weight: 900;
-  color: #fff; line-height: 1.0;
-  text-align: center; letter-spacing: -0.02em;
-  text-shadow: 0 4px 40px rgba(0,0,0,0.8);
-  display: block; width: 100%;
-  opacity: 0;
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  font-size: 50px; font-weight: 900;
+  line-height: 1.15; letter-spacing: -0.02em;
+  text-align: center; color: #ffffff;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.8), 0 0 35px rgba(34,211,238,0.4);
+  max-width: 960px; margin: 0 auto;
 }
 
 .hook-subhead {
-  font-family: 'Inter', sans-serif;
-  font-size: 80px; font-weight: 800;
-  color: #22d3ee; line-height: 1.1;
-  text-align: center;
-  text-shadow: 0 0 40px rgba(34,211,238,0.5);
-  margin-top: 32px;
-  opacity: 0;
+  font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+  font-size: 30px; font-weight: 700;
+  color: #22d3ee; text-align: center;
+  margin-top: 10px;
+  text-shadow: 0 0 20px rgba(34,211,238,0.5);
 }
 
-/* ── LAYOUT: COMPARISON ──────────────────────────────────────── */
-.layout-comparison {
-  position: absolute; inset: 0; z-index: 5;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 220px 80px 300px;
-  gap: 0;
+.mockup-screen-badge {
+  position: absolute; top: 12px; right: 16px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  border-radius: 20px; padding: 4px 14px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px; font-weight: 800;
+  color: #22d3ee; letter-spacing: 1.5px;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+  z-index: 20;
 }
 
-.cmp-card {
-  width: 100%;
-  background: rgba(15,23,42,0.65);
-  border-radius: 24px;
-  padding: 60px 70px;
-  display: flex; flex-direction: column;
-  align-items: flex-start; gap: 20px;
-  opacity: 0;
+.mockup-code-screen {
+  width: 100%; height: 100%;
+  background: #090e17;
+  display: flex; align-items: center; justify-content: center;
+  padding: 30px;
 }
 
-.cmp-card.color-cyan  { border: 2px solid #22d3ee; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 20px 50px rgba(0,0,0,0.35), 0 0 40px rgba(34,211,238,0.25); }
-.cmp-card.color-purple { border: 2px solid #a855f7; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 20px 50px rgba(0,0,0,0.35), 0 0 40px rgba(168,85,247,0.25); }
-.cmp-card.card-winner  { border-width: 3px; }
-
-.cmp-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 40px; font-weight: 500;
-  color: rgba(255,255,255,0.7);
-  text-transform: uppercase; letter-spacing: 3px;
-}
-
-.cmp-value {
-  font-family: 'Anton', 'Inter', sans-serif;
-  font-size: 110px; font-weight: 900;
-  color: #fff; line-height: 1.0;
-  letter-spacing: -0.02em;
-}
-
-.cmp-card.color-cyan  .cmp-value { color: #22d3ee; }
-.cmp-card.color-purple .cmp-value { color: #a855f7; }
-
-.cmp-winner-badge {
-  font-family: 'Inter', sans-serif;
-  font-size: 28px; font-weight: 700;
-  color: #22d3ee;
-  background: rgba(34,211,238,0.15);
-  border: 1px solid rgba(34,211,238,0.4);
-  border-radius: 50px;
-  padding: 8px 24px;
-  letter-spacing: 3px; text-transform: uppercase;
-}
-
-.cmp-vs {
-  font-family: 'Anton', 'Inter', sans-serif;
-  font-size: 80px; font-weight: 900;
-  color: rgba(255,255,255,0.35);
-  text-align: center; line-height: 1;
-  margin: 32px 0;
-  opacity: 0;
+.mockup-code-content {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 26px; color: #f1f5f9;
+  line-height: 1.5; text-align: center;
 }
 
 /* ── LAYOUT: STAT HERO ───────────────────────────────────────── */
 .layout-stat-hero {
-  position: absolute; inset: 0; z-index: 5;
+  position: relative;
+  width: 100%; height: 100%;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 220px 80px 300px;
-  text-align: center; gap: 24px;
+  text-align: center; padding: 20px;
 }
 
-/* Soft spotlight behind the big number */
-.layout-stat-hero::before {
-  content: ""; position: absolute; z-index: -1;
-  left: 50%; top: 42%; width: 820px; height: 820px;
+.stat-glow-orb {
+  position: absolute;
+  width: 600px; height: 600px;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(34,211,238,0.35) 0%, transparent 65%);
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.35) 0%, transparent 65%);
   filter: blur(80px);
   pointer-events: none;
+  z-index: 1;
 }
 
 .stat-value {
-  font-family: 'Anton', 'Bebas Neue', sans-serif;
-  font-size: 220px; font-weight: 900;
+  position: relative; z-index: 2;
+  font-family: 'Anton', 'Montserrat', sans-serif;
+  font-size: 150px; font-weight: 900;
   color: #22d3ee; line-height: 1.0;
   letter-spacing: -0.02em;
-  text-shadow: 0 0 80px rgba(34,211,238,0.5);
+  text-shadow: 0 0 60px rgba(34, 211, 238, 0.7);
   display: block;
-  opacity: 0;
 }
 
 .stat-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 64px; font-weight: 700;
-  color: #fff; line-height: 1.2;
-  text-align: center;
-  opacity: 0;
+  position: relative; z-index: 2;
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  font-size: 48px; font-weight: 800;
+  color: #ffffff; line-height: 1.2;
+  text-align: center; margin-top: 20px;
 }
 
 .stat-context {
-  font-family: 'Inter', sans-serif;
-  font-size: 44px; font-weight: 500;
-  color: rgba(255,255,255,0.6);
+  position: relative; z-index: 2;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 32px; font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
   text-align: center;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50px;
-  padding: 16px 48px;
-  opacity: 0;
+  padding: 12px 40px; margin-top: 20px;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
 }
 
 /* ── LAYOUT: FEATURE LIST ────────────────────────────────────── */
 .layout-feature-list {
-  position: absolute; inset: 0; z-index: 5;
+  width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  padding: 220px 80px 300px;
 }
 
 .feat-card {
-  width: 100%;
-  border-radius: 24px;
-  padding: 72px 80px;
+  width: 920px;
+  border-radius: 28px;
+  padding: 48px 56px;
   border: 2px solid transparent;
   background:
-    linear-gradient(rgba(15,23,42,0.78), rgba(15,23,42,0.78)) padding-box,
+    linear-gradient(rgba(15,23,42,0.85), rgba(15,23,42,0.85)) padding-box,
     linear-gradient(135deg, #a855f7 0%, #7c3aed 50%, #22d3ee 100%) border-box;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 20px 50px rgba(0,0,0,0.35), 0 0 60px rgba(124,58,237,0.2);
-  opacity: 0;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 50px rgba(168,85,247,0.25);
+  backdrop-filter: blur(16px);
 }
 
 .feat-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 60px; font-weight: 700;
+  font-family: 'Be Vietnam Pro', 'Montserrat', sans-serif;
+  font-size: 46px; font-weight: 800;
   color: #a855f7; line-height: 1.2;
-  margin-bottom: 0;
 }
 
 .feat-rule {
   height: 3px;
-  background: linear-gradient(90deg, #a855f7, transparent);
-  margin: 40px 0;
+  background: linear-gradient(90deg, #a855f7, #22d3ee, transparent);
+  margin: 24px 0 32px;
   transform-origin: left center;
-  opacity: 0;
 }
 
 .feat-bullets {
-  display: flex; flex-direction: column; gap: 36px;
+  display: flex; flex-direction: column; gap: 24px;
 }
 
 .feat-bullet {
-  display: flex; align-items: center; gap: 32px;
-  opacity: 0;
+  display: flex; align-items: center; gap: 20px;
 }
 
 .feat-dot {
-  width: 20px; height: 20px; flex-shrink: 0;
+  width: 18px; height: 18px; flex-shrink: 0;
   background: #22d3ee;
   border-radius: 50%;
-  box-shadow: 0 0 16px rgba(34,211,238,0.6);
+  box-shadow: 0 0 16px rgba(34,211,238,0.8);
 }
 
 .feat-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 50px; font-weight: 500;
-  color: rgba(255,255,255,0.9); line-height: 1.3;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 38px; font-weight: 600;
+  color: rgba(255,255,255,0.95); line-height: 1.35;
+}
+
+/* ── LAYOUT: COMPARISON ──────────────────────────────────────── */
+.layout-comparison {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px;
+}
+
+.cmp-card {
+  flex: 1;
+  background: rgba(15,23,42,0.8);
+  border-radius: 24px;
+  padding: 44px 32px;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center; gap: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  backdrop-filter: blur(16px);
+}
+
+.cmp-card.color-cyan  { border: 2px solid #22d3ee; box-shadow: 0 0 35px rgba(34,211,238,0.3); }
+.cmp-card.color-purple { border: 2px solid #a855f7; box-shadow: 0 0 35px rgba(168,85,247,0.3); }
+
+.cmp-label {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 28px; font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase; letter-spacing: 2px;
+}
+
+.cmp-value {
+  font-family: 'Anton', 'Montserrat', sans-serif;
+  font-size: 76px; font-weight: 900;
+  color: #fff; line-height: 1.0;
+}
+
+.cmp-vs {
+  font-family: 'Anton', 'Inter', sans-serif;
+  font-size: 54px; font-weight: 900;
+  color: #fbbf24;
+  text-shadow: 0 0 25px rgba(251,191,36,0.8);
+}
+
+.cmp-winner-badge {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 18px; font-weight: 900;
+  color: #000; background: #22d3ee;
+  border-radius: 50px;
+  padding: 6px 20px;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-top: 10px;
 }
 
 /* ── LAYOUT: CALLOUT ─────────────────────────────────────────── */
 .layout-callout {
-  position: absolute; inset: 0; z-index: 5;
+  width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  padding: 220px 80px 300px;
 }
 
 .callout-card {
-  width: 100%;
-  border-radius: 24px;
-  padding: 80px;
-  border: 2px solid transparent;
-  background:
-    linear-gradient(rgba(15,23,42,0.78), rgba(15,23,42,0.78)) padding-box,
-    linear-gradient(135deg, #22d3ee 0%, #38bdf8 50%, #a855f7 100%) border-box;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 20px 50px rgba(0,0,0,0.35), 0 0 60px rgba(34,211,238,0.2);
+  width: 920px;
+  border-radius: 28px;
+  padding: 48px 56px;
+  border: 2px solid rgba(34,211,238,0.4);
+  background: rgba(15,23,42,0.8);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 45px rgba(34,211,238,0.25);
   text-align: center;
-  opacity: 0;
+  backdrop-filter: blur(16px);
+}
+
+.callout-quote-icon {
+  font-size: 72px; font-family: Georgia, serif;
+  color: #22d3ee; line-height: 0.8; margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(34,211,238,0.6);
 }
 
 .callout-tag {
   display: inline-block;
-  font-family: 'Inter', sans-serif;
-  font-size: 32px; font-weight: 700;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 24px; font-weight: 800;
   color: #22d3ee;
   background: rgba(34,211,238,0.12);
   border: 1px solid rgba(34,211,238,0.4);
   border-radius: 50px;
-  padding: 12px 36px;
-  letter-spacing: 3px; text-transform: uppercase;
-  margin-bottom: 48px;
+  padding: 8px 26px;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 24px;
 }
 
 .callout-statement {
-  font-family: 'Inter', sans-serif;
-  font-size: 64px; font-weight: 600;
-  color: #fff; line-height: 1.35;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 44px; font-weight: 700;
+  color: #ffffff; line-height: 1.35;
 }
 
 /* ── LAYOUT: OUTRO ───────────────────────────────────────────── */
 .layout-outro {
-  position: absolute; inset: 0; z-index: 5;
-  background: linear-gradient(180deg, rgba(76,29,149,0.6) 0%, rgba(10,22,40,0.8) 100%);
+  width: 100%; height: 100%;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 220px 80px 300px;
-  gap: 0;
-  text-align: center;
-}
-
-.out-cta-top {
-  font-family: 'Inter', sans-serif;
-  font-size: 52px; font-weight: 700; color: #fff;
-  border: 3px solid rgba(255,255,255,0.7);
-  padding: 20px 56px; border-radius: 50px;
-  letter-spacing: 0.05em; margin-bottom: 80px;
-  opacity: 0;
+  text-align: center; position: relative;
 }
 
 .out-channel {
-  font-family: 'Anton', 'Inter', sans-serif;
-  font-size: 120px; font-weight: 900;
-  color: #fff; text-align: center;
-  line-height: 1.0; letter-spacing: -0.02em;
-  text-shadow: 0 0 60px rgba(168,85,247,0.6);
-  opacity: 0;
+  font-family: 'Anton', 'Montserrat', sans-serif;
+  font-size: 96px; font-weight: 900;
+  color: #fff; line-height: 1.0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 60px rgba(168,85,247,0.7);
 }
 
 .out-underline {
   height: 4px;
   background: linear-gradient(90deg, #7c3aed, #22d3ee);
-  width: 0; margin: 40px auto;
+  width: 380px; margin: 20px auto 24px;
   border-radius: 4px;
 }
 
 .out-source {
-  font-family: 'Inter', sans-serif;
-  font-size: 44px; font-weight: 500;
-  color: rgba(255,255,255,0.65); text-align: center;
-  margin-top: 40px;
-  opacity: 0;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 34px; font-weight: 600;
+  color: rgba(255,255,255,0.75);
 }
 
-/* ── FX OVERLAYS ────────────────────────────────────────────── */
-.fx { position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 10; }
-.fx.flash-white-3f     { background: #fff; }
-.fx.particle-burst     { background: radial-gradient(circle at center, rgba(34,211,238,0.9) 0%, transparent 60%); }
-.fx.color-flash-accent { background: rgba(168,85,247,0.4); }
+.out-cta-top {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 40px; font-weight: 800;
+  color: #fff;
+  border: 2.5px solid rgba(255,255,255,0.6);
+  padding: 14px 48px; border-radius: 50px;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+}
 
-/* ── TIKTOK FOLLOW CARD (outro overlay) ──────────────────────────────────
-   Adapted from HyperFrames hyperframes:block tiktok-follow.
-   Card slides up from bottom during outro scene. */
+.layout-outro .tt-card {
+  position: relative;
+  bottom: auto; left: auto;
+  transform: none;
+  margin-top: 36px;
+  opacity: 1;
+}
+
+/* ── TIKTOK FOLLOW CARD ────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=block');
 
 .tt-card {
-  position: absolute;
-  bottom: 360px;            /* above the brand-shell-handle */
-  left: 50%;
-  transform: translate(-50%, 300px);   /* start off-screen below */
-  display: flex; align-items: center; gap: 30px;
-  background: #1a1a1a;
-  border-radius: 75px;
-  padding: 25px 40px 25px 25px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 60px rgba(254,44,85,0.15);
+  display: flex; align-items: center; gap: 28px;
+  background: #151822;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 65px;
+  padding: 20px 36px 20px 20px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 40px rgba(254,44,85,0.25);
   font-family: 'DM Sans', sans-serif;
-  opacity: 0;
   z-index: 60;
 }
 
 .tt-avatar {
-  width: 120px; height: 120px;
+  width: 100px; height: 100px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 3px solid #333;
+  border: 3px solid #334155;
 }
 
 .tt-profile-info {
   display: flex; flex-direction: column; gap: 2px;
-  margin-right: 20px;
+  text-align: left;
+  margin-right: 16px;
 }
 
 .tt-display-name {
-  font-size: 42px; font-weight: 700; color: #ffffff;
-  line-height: 1.3; letter-spacing: -0.01em;
+  font-size: 36px; font-weight: 700; color: #ffffff;
+  line-height: 1.2; letter-spacing: -0.01em;
 }
 .tt-handle {
-  font-size: 28px; font-weight: 400; color: #a0a0a0;
-  line-height: 1.3;
+  font-size: 24px; font-weight: 400; color: #94a3b8;
+  line-height: 1.2;
 }
 .tt-followers {
-  font-size: 25px; font-weight: 400; color: #737373;
-  line-height: 1.3;
+  font-size: 22px; font-weight: 400; color: #64748b;
+  line-height: 1.2;
 }
 
 .tt-follow-btn {
   position: relative;
-  width: 250px; height: 80px;
-  border-radius: 40px;
+  width: 210px; height: 68px;
+  border-radius: 34px;
   background: #fe2c55;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
+  box-shadow: 0 4px 18px rgba(254,44,85,0.4);
 }
 
 .tt-btn-text {
   position: absolute;
   font-family: 'DM Sans', sans-serif;
-  font-size: 30px; font-weight: 700; color: #ffffff;
+  font-size: 26px; font-weight: 700; color: #ffffff;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -577,8 +568,28 @@ html, body {
   display: flex; align-items: center; gap: 8px;
 }
 
-.tt-check-icon { display: inline-block; width: 22px; height: 22px; }
-.tt-check-icon svg { width: 22px; height: 22px; display: block; }
+.tt-check-icon { display: inline-block; width: 20px; height: 20px; }
+.tt-check-icon svg { width: 20px; height: 20px; display: block; }
+
+/* ── WAVEFORM EQUALIZER ────────────────────────────────────────── */
+.waveform-anim {
+  display: flex; align-items: flex-end; gap: 6px;
+  height: 24px; margin-top: 14px;
+}
+.w-bar {
+  width: 5px; background: #22d3ee; border-radius: 3px;
+  animation: wave-bounce 1s ease-in-out infinite alternate;
+}
+.w-bar.bar-1 { height: 35%; animation-delay: 0.1s; }
+.w-bar.bar-2 { height: 85%; animation-delay: 0.3s; }
+.w-bar.bar-3 { height: 100%; animation-delay: 0.2s; }
+.w-bar.bar-4 { height: 65%; animation-delay: 0.4s; }
+.w-bar.bar-5 { height: 45%; animation-delay: 0.15s; }
+
+@keyframes wave-bounce {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1.0); }
+}
 
 /* ============================================================
    3-TIER STACKED LAYOUT (9:16 Vertical Video - 1080x1920)

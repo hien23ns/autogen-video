@@ -171,27 +171,127 @@ Chỉ trả về duy nhất chuỗi JSON hợp lệ, không bọc trong markdown
 /**
  * Intelligent local synthesizer that produces a compliant 5-scene script.
  */
+/**
+ * Intelligent local synthesizer that produces a compliant, natural 5-scene script.
+ */
 export function synthesizeFallbackScript(
   article: ScrapedArticle,
   meta: { channel: string; provider: string; voiceId: string }
 ): Script {
-  const title = article.title.split(/[-–|]/)[0].trim();
-  const shortTitle = title.slice(0, 36);
+  const isGitHub = article.domain === "github.com" || article.url.includes("github.com");
 
-  // Extract key phrases from content
+  if (isGitHub) {
+    const repoParts = article.url.split("github.com/")[1]?.split("/").filter(Boolean) || [];
+    const ownerName = repoParts[0] || "Meta";
+    const rawRepoName = repoParts[1] || article.title.split(/[:\-–|]/)[0].trim();
+    const repoName = rawRepoName.slice(0, 25);
+
+    // Extract stars & language if present
+    const starsMatch = article.content.match(/Số sao:\s*(\d+)/i) || article.content.match(/(\d+)\s*stars/i);
+    const starsNum = starsMatch ? parseInt(starsMatch[1], 10) : 0;
+    const starsDisplay = starsNum > 1000 ? `${Math.round(starsNum / 1000)}K+ ⭐` : starsNum > 0 ? `${starsNum} ⭐` : "TOP 1 ⭐";
+    const starsSpoken = starsNum > 1000 ? `${Math.round(starsNum / 1000)} nghìn lượt gắn sao` : "hàng đầu thế giới";
+
+    const langMatch = article.content.match(/Ngôn ngữ chính:\s*([^\n]+)/i);
+    const mainLang = (langMatch?.[1] || "JavaScript").trim();
+
+    return {
+      version: "1.0",
+      metadata: {
+        title: `${repoName} - ${ownerName}`,
+        source: {
+          url: article.url,
+          domain: "github.com",
+          image: article.ogImage,
+        },
+        channel: meta.channel,
+      },
+      voice: {
+        provider: meta.provider,
+        voiceId: meta.voiceId,
+        speed: 1.0,
+      },
+      scenes: [
+        {
+          id: "hook",
+          type: "hook",
+          voiceText: convertNumbersToWordsVietnamese(`Khám phá dự án mã nguồn mở cực hot trên GitHub: ${repoName} của ${ownerName}!`),
+          templateData: {
+            template: "hook",
+            headline: repoName,
+            subhead: `Dự án GitHub Hot bởi ${ownerName}`,
+            bgSrc: article.ogImage ? "$source.image" : undefined,
+            kenBurns: "zoom-in",
+          },
+        },
+        {
+          id: "body-1",
+          type: "body",
+          voiceText: convertNumbersToWordsVietnamese(`Dự án đã cán mốc hơn ${starsSpoken}, trở thành nền tảng lập trình phổ biến hàng đầu thế giới.`),
+          templateData: {
+            template: "stat-hero",
+            value: starsDisplay,
+            label: "Cộng đồng lập trình",
+            context: "Mã nguồn mở thịnh hành",
+          },
+        },
+        {
+          id: "body-2",
+          type: "body",
+          voiceText: convertNumbersToWordsVietnamese(`Được phát triển chủ đạo bằng ${mainLang}, với kiến trúc thành phần linh hoạt và tối ưu hiệu suất cực cao.`),
+          templateData: {
+            template: "feature-list",
+            title: "Điểm sáng cốt lõi",
+            bullets: [
+              `Ngôn ngữ: ${mainLang}`,
+              "Kiến trúc Component hiện đại",
+              "Hệ sinh thái mở rộng mạnh mẽ",
+            ],
+            icon: "spark",
+          },
+        },
+        {
+          id: "body-3",
+          type: "body",
+          voiceText: convertNumbersToWordsVietnamese("Đây chắc chắn là công nghệ không thể thiếu đối với mọi lập trình viên trong năm nay."),
+          templateData: {
+            template: "callout",
+            statement: "Công nghệ nền tảng định hình tương lai phát triển phần mềm.",
+            tag: "Đánh giá chuyên môn",
+          },
+        },
+        {
+          id: "outro",
+          type: "outro",
+          voiceText: `Theo dõi ${meta.channel} để đón xem những công nghệ đột phá mỗi ngày.`,
+          templateData: {
+            template: "outro",
+            ctaTop: "Theo dõi ngay",
+            channelName: meta.channel,
+            source: "github.com",
+          },
+        },
+      ],
+    };
+  }
+
+  // General news articles
+  const cleanTitle = cleanShortHeadline(article.title);
+
+  // Extract real sentences from content, filtering out raw labels
   const sentences = article.content
     .split(/[.\n]/)
-    .map((s) => s.trim())
+    .map((s) => s.replace(/^(Mô tả|Dự án|Topics|Tags|Nội dung):\s*/i, "").trim())
     .filter((s) => s.length > 20 && s.length < 150);
 
-  const s1 = sentences[0] || article.description || "Công nghệ mới vừa chính thức được công bố.";
-  const s2 = sentences[1] || "Được trang bị hàng loạt nâng cấp mạnh mẽ vượt trội.";
-  const s3 = sentences[2] || "Dự kiến sẽ thay đổi mạnh mẽ trải nghiệm người dùng trong năm nay.";
+  const s1 = sentences[0] || article.description || "Công nghệ mới vừa chính thức được công bố trên toàn cầu.";
+  const s2 = sentences[1] || "Được trang bị hàng loạt cải tiến vượt trội về hiệu năng và trải nghiệm người dùng.";
+  const s3 = sentences[2] || "Dự kiến sẽ tạo nên bước ngoặt lớn trên thị trường công nghệ trong năm nay.";
 
   return {
     version: "1.0",
     metadata: {
-      title: shortTitle,
+      title: cleanTitle,
       source: {
         url: article.url,
         domain: article.domain,
@@ -208,10 +308,10 @@ export function synthesizeFallbackScript(
       {
         id: "hook",
         type: "hook",
-        voiceText: convertNumbersToWordsVietnamese(`${shortTitle} vừa chính thức ra mắt, mang đến nhiều thay đổi bất ngờ.`),
+        voiceText: convertNumbersToWordsVietnamese(`${cleanTitle} vừa chính thức ra mắt, mang đến nhiều thay đổi bất ngờ.`),
         templateData: {
           template: "hook",
-          headline: shortTitle.slice(0, 38),
+          headline: cleanTitle,
           subhead: "Tin tức công nghệ mới",
           bgSrc: article.ogImage ? "$source.image" : undefined,
           kenBurns: "zoom-in",
@@ -234,10 +334,10 @@ export function synthesizeFallbackScript(
         voiceText: convertNumbersToWordsVietnamese(s2),
         templateData: {
           template: "feature-list",
-          title: "Điểm nổi bật",
+          title: "Nâng cấp vượt bậc",
           bullets: [
-            "Hiệu năng tối ưu vượt bậc",
-            "Thiết kế hiện đại chuẩn 2026",
+            "Hiệu năng tối ưu vượt trội",
+            "Thiết kế công nghệ thế hệ mới",
             "Trải nghiệm mượt mà toàn diện",
           ],
           icon: "spark",
@@ -249,14 +349,14 @@ export function synthesizeFallbackScript(
         voiceText: convertNumbersToWordsVietnamese(s3),
         templateData: {
           template: "callout",
-          statement: shortTitle.slice(0, 75),
+          statement: cleanTitle,
           tag: "Đánh giá nhanh",
         },
       },
       {
         id: "outro",
         type: "outro",
-        voiceText: `Theo dõi ${meta.channel} để xem bản tin mới mỗi ngày.`,
+        voiceText: `Theo dõi ${meta.channel} để đón xem những công nghệ đột phá mỗi ngày.`,
         templateData: {
           template: "outro",
           ctaTop: "Theo dõi ngay",
@@ -267,6 +367,15 @@ export function synthesizeFallbackScript(
     ],
   };
 }
+
+function cleanShortHeadline(raw: string, maxLen = 35): string {
+  const cleaned = raw.split(/[-–|]/)[0].trim();
+  if (cleaned.length <= maxLen) return cleaned;
+  const cut = cleaned.slice(0, maxLen);
+  const lastSpace = cut.lastIndexOf(" ");
+  return lastSpace > 15 ? cut.slice(0, lastSpace) : cut;
+}
+
 
 /**
  * Phonetic helper to convert numbers and percentage symbols into natural Vietnamese spoken text.

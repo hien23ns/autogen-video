@@ -125,18 +125,14 @@ function renderScene(
   const domain = metadata.source.domain;
 
   let bgHtml = "";
-  let badgeIcon = "⚡";
-  let badgeLabel = "CÔNG NGHỆ 24H";
-  let headline = "";
+  let topTierHtml = "";
   let midInner = "";
   let layoutName = td.template;
 
   switch (td.template) {
     case "hook": {
       layoutName = "hook";
-      badgeIcon = "🔥";
-      badgeLabel = "TIN NÓNG ĐỘT PHÁ";
-      headline = escapeHtml(td.headline);
+      const headline = escapeHtml(td.headline);
       const subhead = td.subhead ? escapeHtml(td.subhead) : "";
 
       const hasImage = Boolean(td.bgSrc && bgImageRelPath);
@@ -147,35 +143,94 @@ function renderScene(
         bgHtml = `<div class="bg gradient-news-dark"></div>`;
       }
       const overlayHtml = hasImage ? `<div class="overlay" style="opacity: 0.55"></div>` : "";
+      bgHtml += overlayHtml;
 
-      // Mid tier inner content (Mockup screen)
-      const scrollHtml = bgImageRelPath
+      topTierHtml = `
+<div class="tier-top-badge">
+  <span class="badge-icon">🔥</span>
+  <span class="badge-text">TIN NÓNG ĐỘT PHÁ</span>
+</div>
+<h1 class="hook-headline shimmer-sweep-target">${headline}</h1>
+${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}`.trim();
+
+      const scrollContent = bgImageRelPath
         ? `<div class="mockup-scroll-track"><img src="${escapeHtml(bgImageRelPath)}" class="mockup-scroll-img" alt="Web Preview" /></div>`
-        : "";
+        : `<div class="mockup-code-screen"><div class="mockup-code-content">&gt; ${escapeHtml(headline)}<br/><span style="color:#00f0ff;">// ${escapeHtml(subhead || "Tin tức công nghệ")}</span></div></div>`;
 
       midInner = renderMockupLaptop(
         domain,
-        `${scrollHtml}
-        <div class="layout-hook" style="background:rgba(10,18,36,0.65);">
-          <div class="hook-headline shimmer-sweep-target">${headline}</div>
-          ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}
-        </div>`
+        `${scrollContent}
+        <div class="mockup-screen-badge">LIVE PREVIEW</div>`
       );
-      bgHtml += overlayHtml;
+      break;
+    }
+
+    case "stat-hero": {
+      layoutName = "stat-hero";
+      const context = td.context ? `<div class="stat-context">${escapeHtml(td.context)}</div>` : "";
+      topTierHtml = `
+<div class="tier-top-badge">
+  <span class="badge-icon">📊</span>
+  <span class="badge-text">SỐ LIỆU ĐỘT PHÁ</span>
+</div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.label)}</h1>`.trim();
+
+      midInner = `
+<div class="layout-stat-hero">
+  <div class="stat-glow-orb"></div>
+  <div class="stat-value shimmer-sweep-target">${escapeHtml(td.value)}</div>
+  <div class="stat-label">${escapeHtml(td.label)}</div>
+  ${context}
+</div>`.trim();
+      break;
+    }
+
+    case "feature-list": {
+      layoutName = "feature-list";
+      const bullets = td.bullets
+        .map(
+          (b, i) =>
+            `<div class="feat-bullet feat-bullet-${i}" data-idx="${i}">
+      <div class="feat-dot"></div>
+      <div class="feat-text">${escapeHtml(b)}</div>
+    </div>`
+        )
+        .join("\n    ");
+
+      topTierHtml = `
+<div class="tier-top-badge">
+  <span class="badge-icon">🚀</span>
+  <span class="badge-text">TÍNH NĂNG NỔI BẬT</span>
+</div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.title)}</h1>`.trim();
+
+      midInner = `
+<div class="layout-feature-list">
+  <div class="feat-card">
+    <div class="feat-title">${escapeHtml(td.title)}</div>
+    <div class="feat-rule"></div>
+    <div class="feat-bullets">
+      ${bullets}
+    </div>
+  </div>
+</div>`.trim();
       break;
     }
 
     case "comparison": {
       layoutName = "comparison";
-      badgeIcon = "⚖️";
-      badgeLabel = "BẢNG SO SÁNH";
-      headline = `${escapeHtml(td.left.label)} VS ${escapeHtml(td.right.label)}`;
-
       const lColor = td.left.color;
       const rColor = td.right.color;
       const winnerClass = td.right.winner ? " card-winner" : "";
 
-      const cmpInner = `
+      topTierHtml = `
+<div class="tier-top-badge">
+  <span class="badge-icon">⚖️</span>
+  <span class="badge-text">BẢNG SO SÁNH</span>
+</div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.left.label)} VS ${escapeHtml(td.right.label)}</h1>`.trim();
+
+      midInner = `
 <div class="layout-comparison">
   <div class="cmp-card cmp-left color-${lColor}">
     <div class="cmp-label">${escapeHtml(td.left.label)}</div>
@@ -187,103 +242,51 @@ function renderScene(
     <div class="cmp-value">${escapeHtml(td.right.value)}</div>
     ${td.right.winner ? '<div class="cmp-winner-badge">WINNER</div>' : ""}
   </div>
-</div>`;
-      midInner = renderMockupLaptop(domain, cmpInner);
-      break;
-    }
-
-    case "stat-hero": {
-      layoutName = "stat-hero";
-      badgeIcon = "📊";
-      badgeLabel = "SỐ LIỆU ĐỘT PHÁ";
-      headline = escapeHtml(td.label);
-
-      const context = td.context ? `<div class="stat-context">${escapeHtml(td.context)}</div>` : "";
-      const statInner = `
-<div class="layout-stat-hero">
-  <div class="stat-value shimmer-sweep-target">${escapeHtml(td.value)}</div>
-  <div class="stat-label">${escapeHtml(td.label)}</div>
-  ${context}
-</div>`;
-      midInner = renderMockupLaptop(domain, statInner);
-      break;
-    }
-
-    case "feature-list": {
-      layoutName = "feature-list";
-      badgeIcon = "🚀";
-      badgeLabel = "TÍNH NĂNG NỔI BẬT";
-      headline = escapeHtml(td.title);
-
-      const bullets = td.bullets
-        .map(
-          (b, i) =>
-            `<div class="feat-bullet feat-bullet-${i}" data-idx="${i}">
-      <div class="feat-dot"></div>
-      <div class="feat-text">${escapeHtml(b)}</div>
-    </div>`
-        )
-        .join("\n    ");
-
-      const featInner = `
-<div class="layout-feature-list">
-  <div class="feat-card">
-    <div class="feat-title">${escapeHtml(td.title)}</div>
-    <div class="feat-rule"></div>
-    <div class="feat-bullets">
-      ${bullets}
-    </div>
-  </div>
-</div>`;
-      midInner = renderMockupLaptop(domain, featInner);
+</div>`.trim();
       break;
     }
 
     case "callout": {
       layoutName = "callout";
-      badgeIcon = "💡";
-      badgeLabel = td.tag ? escapeHtml(td.tag) : "TIÊU ĐIỂM CHÚ Ý";
-      headline = td.tag ? escapeHtml(td.tag) : "ĐIỂM NHẤN CÔNG NGHỆ";
-
       const tag = td.tag ? `<div class="callout-tag">${escapeHtml(td.tag)}</div>` : "";
-      const calloutInner = `
+      topTierHtml = `
+<div class="tier-top-badge">
+  <span class="badge-icon">💡</span>
+  <span class="badge-text">${td.tag ? escapeHtml(td.tag) : "TIÊU ĐIỂM CHÚ Ý"}</span>
+</div>
+<h1 class="tier-top-headline shimmer-sweep-target">${td.tag ? escapeHtml(td.tag) : "ĐIỂM NHẤN CÔNG NGHỆ"}</h1>`.trim();
+
+      midInner = `
 <div class="layout-callout">
   <div class="callout-card">
+    <div class="callout-quote-icon">&ldquo;</div>
     ${tag}
     <div class="callout-statement">${escapeHtml(td.statement)}</div>
   </div>
-</div>`;
-      midInner = renderMockupLaptop(domain, calloutInner);
+</div>`.trim();
       break;
     }
 
     case "outro": {
       layoutName = "outro";
-      badgeIcon = "🔔";
-      badgeLabel = "THEO DÕI NGAY";
-      headline = escapeHtml(td.ctaTop);
-
       const ttCard = renderTiktokCard(tiktok, tiktokAvatarRelPath);
-      const outroInner = `
+      topTierHtml = `
+<div class="tier-top-badge">
+  <span class="badge-icon">🔔</span>
+  <span class="badge-text">THEO DÕI NGAY</span>
+</div>
+<div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>`.trim();
+
+      midInner = `
 <div class="layout-outro">
-  <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>
   <div class="out-channel">${escapeHtml(td.channelName)}</div>
   <div class="out-underline"></div>
   <div class="out-source">Nguồn: ${escapeHtml(td.source)}</div>
-</div>
-${ttCard}`;
-      midInner = renderMockupLaptop(domain, outroInner);
+  ${ttCard}
+</div>`.trim();
       break;
     }
   }
-
-  // Top Tier: Badge + Headline
-  const topTierHtml = `
-<div class="tier-top-badge">
-  <span class="badge-icon">${badgeIcon}</span>
-  <span class="badge-text">${badgeLabel}</span>
-</div>
-<h1 class="tier-top-headline shimmer-sweep-target">${headline}</h1>`.trim();
 
   // Bottom Tier: Dynamic Karaoke Subtitles
   const karaokeHtml = renderKaraokeHtml({
@@ -317,6 +320,13 @@ ${ttCard}`;
     </div>
     <div class="tier-bot">
       ${karaokeHtml}
+      <div class="waveform-anim">
+        <span class="w-bar bar-1"></span>
+        <span class="w-bar bar-2"></span>
+        <span class="w-bar bar-3"></span>
+        <span class="w-bar bar-4"></span>
+        <span class="w-bar bar-5"></span>
+      </div>
     </div>
   </div>
 </div>`.trim();
