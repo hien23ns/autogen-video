@@ -978,6 +978,62 @@ html, body {
   box-shadow: 0 0 25px rgba(255, 230, 0, 0.55), inset 0 0 10px rgba(255, 230, 0, 0.25);
 }
 
+/* ── 5 VIRAL CAPTION STYLES ───────────────────────────────── */
+.tier-bot-karaoke.style-karaoke-highlight .k-word.k-active {
+  color: #ffe600;
+  transform: scale(1.24);
+  text-shadow: 0 0 25px #ffe600, 0 0 45px rgba(245, 158, 11, 0.7);
+}
+
+.tier-bot-karaoke.style-pop-in .k-word.k-active {
+  color: #00f0ff;
+  transform: scale(1.32) rotate(-1.5deg);
+  text-shadow: 0 0 30px #00f0ff, 0 4px 15px rgba(0,0,0,0.9);
+}
+
+.tier-bot-karaoke.style-box-highlight .k-word {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 4px 12px;
+}
+.tier-bot-karaoke.style-box-highlight .k-word.k-active {
+  background: #ff0055;
+  color: #ffffff;
+  border-color: #ffffff;
+  transform: scale(1.2);
+  box-shadow: 0 0 30px rgba(255, 0, 85, 0.8);
+}
+
+.tier-bot-karaoke.style-hand-drawn-underline .k-word.k-active {
+  color: #ffffff;
+  border-bottom: 5px solid #ffe600;
+  border-radius: 0;
+  transform: scale(1.15);
+}
+
+.tier-bot-karaoke.style-minimal .karaoke-display-box {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.tier-bot-karaoke.style-minimal .k-word.k-active {
+  color: #ffffff;
+  transform: scale(1.18);
+  text-shadow: 0 4px 20px rgba(0,0,0,0.95);
+}
+
+/* Smart Keyword Highlight */
+.k-word.k-keyword {
+  color: #22d3ee;
+  font-weight: 900;
+}
+.k-word.k-keyword.k-active {
+  color: #ffe600;
+  text-shadow: 0 0 35px #ffe600, 0 0 60px #ff0055;
+}
+
+
 .k-word.k-done {
   color: #ffffff;
   transform: scale(1.0);
