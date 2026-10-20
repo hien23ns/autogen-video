@@ -1,0 +1,14 @@
+{
+  "bgm": [
+    {
+      "id": "ambient-lofi-tech",
+      "filename": "bgm.mp3",
+      "title": "Ambient Lo-Fi Tech Chill",
+      "genre": "Lo-Fi / Synthwave Chill",
+      "bpm": 80,
+      "style": ["tech", "minimal", "sunset-vibes"],
+      "license": "CC0 Public Domain",
+      "source": "Synthesized via FFmpeg lavfi chord oscillator"
+    }
+  ]
+}

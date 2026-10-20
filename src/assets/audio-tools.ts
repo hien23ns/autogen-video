@@ -167,9 +167,10 @@ export async function mixSfxOntoVoice(
   const hasBgm = Boolean(bgmOpts?.bgmPath && existsSync(bgmOpts.bgmPath));
 
   if (!hasSfx && !hasBgm) {
-    // Neither SFX nor BGM — just normalize voice
+    // Neither SFX nor BGM — normalize voice to standard -14 LUFS
     await run("ffmpeg", [
       "-y", "-i", voicePath,
+      "-af", "loudnorm=I=-14:TP=-1.0:LRA=11",
       "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100",
       outPath,
     ]);
@@ -203,33 +204,36 @@ export async function mixSfxOntoVoice(
     }
   }
 
-  // 2. BGM Input & filter (looping, gentle 8% volume, fade out at end)
-  let bgmLabel = "";
+  // 2. Voice stream preparation (split if sidechain ducking needed)
   if (hasBgm && bgmOpts?.bgmPath) {
-    const bgmVol = bgmOpts.volume ?? 0.08;
+    filterParts.push(
+      `[0:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono,asplit=2[voice_main][voice_sc]`
+    );
+
+    const bgmVol = bgmOpts.volume ?? 0.12;
     const fadeOutStart = Math.max(0, voiceDur - 1.5);
     ffArgs.push("-stream_loop", "-1", "-i", bgmOpts.bgmPath);
     const bgmInputIdx = nextInputIdx;
-    bgmLabel = "[bgm]";
     filterParts.push(
       `[${bgmInputIdx}:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono,` +
-      `volume=${bgmVol},afade=t=in:st=0:d=1.0,afade=t=out:st=${fadeOutStart.toFixed(2)}:d=1.5${bgmLabel}`
+      `volume=${bgmVol},afade=t=in:st=0:d=1.0,afade=t=out:st=${fadeOutStart.toFixed(2)}:d=1.5[bgm_raw];` +
+      `[bgm_raw][voice_sc]sidechaincompress=threshold=0.08:ratio=4:attack=50:release=350[bgm_ducked]`
     );
     nextInputIdx++;
+  } else {
+    filterParts.push(
+      `[0:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono[voice_main]`
+    );
   }
 
-  // 3. Voice normalization
-  filterParts.push(
-    `[0:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono[voice]`
-  );
-
-  // 4. Final Mix: voice (full) + SFX (subtle) + BGM (gentle background)
-  const mixInputs: string[] = ["[voice]"];
-  if (hasBgm) mixInputs.push(bgmLabel);
+  // 3. Final Mix: voice_main + (bgm_ducked) + (sfx)
+  const mixInputs: string[] = ["[voice_main]"];
+  if (hasBgm && bgmOpts?.bgmPath) mixInputs.push("[bgm_ducked]");
   if (hasSfx) mixInputs.push(sfxLabels.length === 1 ? sfxLabels[0] : "[sfxall]");
 
   filterParts.push(
-    `${mixInputs.join("")}amix=inputs=${mixInputs.length}:duration=first:dropout_transition=0:normalize=0[out]`
+    `${mixInputs.join("")}amix=inputs=${mixInputs.length}:duration=first:dropout_transition=0:normalize=0,` +
+    `loudnorm=I=-14:TP=-1.0:LRA=11[out]`
   );
 
   ffArgs.push(
