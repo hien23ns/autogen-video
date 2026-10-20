@@ -83,16 +83,29 @@ npm run pipeline -- tests/fixtures/sample-script-with-image.json --theme cyberpu
 ```bash
 npm test
 ```
-*(Hiện tại 70/70 tests đều pass 100%, bao gồm kiểm tra Layout 3 tầng, Karaoke Timing, Mockups, Scraper, AI Script và TTS Providers).*
+*(Hiện tại 80/80 tests đều pass 100%, bao gồm kiểm tra Motion Templates, Ghost-Editor, Publish Pack, Karaoke Timing, Mockups, Scraper, AI Script và TTS Providers).*
 
----
+### 4. Các Lệnh v2.5 Pro Studio Mới:
+```bash
+# Chẩn đoán môi trường:
+npm run doctor
 
-## 4. Các Điểm Nâng Cấp Nổi Bật Trong Phiên Bản v2.5
+# AI Ghost-Editor cắt ghép video quay thô sang 9:16:
+npm run edit-raw -- raw-video.mp4 --reframe 9:16 --compare
 
-1. **Bố cục 3 tầng chuẩn 9:16:**
-   * **Tầng trên (20%):** Glassmorphism Badge chủ đề (`🔥 TIN NÓNG ĐỘT PHÁ`, `⚡ CÔNG NGHỆ 24H`) và tiêu đề giật tít, font **Be Vietnam Pro & Montserrat** với viền đổ bóng chống chìm chữ trên mọi nền.
-   * **Tầng giữa (50%):** Khung Mockup Laptop MacBook Pro / Smartphone iPhone với camera notch và màn hình hỗ trợ **Web Auto-Scroll mượt mà**.
-   * **Tầng dưới (30%):** Module **Phụ đề Karaoke động**, highlight từng từ theo thời gian thực đồng bộ cùng giọng đọc TTS.
-2. **Nền Dynamic Mesh Gradient:** Chuyển động nhẹ với 3-4 glowing orbs và lưới công nghệ tech grid thay thế nền tĩnh.
-3. **Theme Cyberpunk mới:** Phối màu vàng neon `#fcee0a`, xanh cyan `#00f0ff` và magenta `#ff0055` cực kỳ cuốn hút trên TikTok/Reels.
-4. **Tích hợp Gemini AI Script Generator & Scraper:** Tự động chuyển đổi số và ký hiệu theo quy tắc phát âm TTS tiếng Việt chuẩn xác (ví dụ: `GPT 5.5` -> `GPT năm chấm năm`, `82.7%` -> `tám mươi hai phẩy bảy phần trăm`).
+# Kiểm tra chất lượng và độ lớn âm thanh (-14 LUFS):
+npm run qa:video -- output/<dir>/video.mp4
+
+# Mở Visual Studio chỉnh sửa timeline:
+npm run studio
+
+# Render lại một cảnh duy nhất:
+npm run rerender -- output/<dir> --scene hook --preset draft
+
+# Tạo video hàng loạt từ danh sách:
+npm run batch -- urls.txt --concurrency 2
+
+# Đồng bộ Agent Skills cho Antigravity và Claude Code:
+npm run skills:sync
+```
+
