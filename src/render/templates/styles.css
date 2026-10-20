@@ -1237,4 +1237,56 @@ html, body {
 .style-luxury .tier-top-badge { background: linear-gradient(135deg, #d4af37, #f3e5ab); color: #000; }
 .style-retro .tier-top-badge { background: #ec4899; color: #fff; }
 
+/* ══════════════════════════════════════════════════════════════
+   MULTI-ASPECT RATIO ADAPTATIONS (16:9, 1:1, 4:5)
+   ══════════════════════════════════════════════════════════════ */
+#stage.ratio-16-9 .scene-grid-3tier {
+  grid-template-rows: 120px 1fr 180px;
+  padding: 30px 80px;
+}
+#stage.ratio-16-9 .tier-mid-card {
+  max-width: 1500px;
+}
+#stage.ratio-16-9 .tier-bot-karaoke {
+  max-width: 1400px;
+}
+#stage.ratio-16-9 .karaoke-display-box {
+  max-width: 1400px;
+  padding: 16px 36px;
+  min-height: 90px;
+}
+#stage.ratio-16-9 .brand-shell-header {
+  top: 30px; left: 60px;
+}
+#stage.ratio-16-9 .brand-shell-keyword {
+  top: 30px; right: 60px;
+}
+#stage.ratio-16-9 .brand-shell-handle {
+  bottom: 25px; left: 60px;
+}
+#stage.ratio-16-9 .cw-codebox {
+  width: 1400px;
+  font-size: 26px;
+}
+
+#stage.ratio-1-1 .scene-grid-3tier {
+  grid-template-rows: 150px 1fr 200px;
+  padding: 40px 50px;
+}
+#stage.ratio-1-1 .tier-bot-karaoke,
+#stage.ratio-4-5 .tier-bot-karaoke {
+  max-width: 940px;
+}
+#stage.ratio-1-1 .cw-codebox,
+#stage.ratio-4-5 .cw-codebox {
+  width: 940px;
+  font-size: 24px;
+}
+
+#stage.ratio-4-5 .scene-grid-3tier {
+  grid-template-rows: 170px 1fr 220px;
+  padding: 45px 55px;
+}
+
+
 

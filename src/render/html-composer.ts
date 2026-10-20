@@ -21,6 +21,15 @@ const DEFAULT_TIKTOK: TiktokConfig = {
   followers: "2x followers",
 };
 
+export type AspectRatio = "9:16" | "16:9" | "1:1" | "4:5";
+
+export const ASPECT_RATIOS: Record<AspectRatio, { width: number; height: number; label: string }> = {
+  "9:16": { width: 1080, height: 1920, label: "Vertical 9:16 (TikTok/Reels/Shorts)" },
+  "16:9": { width: 1920, height: 1080, label: "Horizontal 16:9 (YouTube)" },
+  "1:1":  { width: 1080, height: 1080, label: "Square 1:1 (Feed/Post)" },
+  "4:5":  { width: 1080, height: 1350, label: "Portrait 4:5 (Instagram Feed)" },
+};
+
 export interface SceneAudio {
   id: string;
   durationSec: number;
@@ -38,6 +47,8 @@ export interface ComposeArgs {
   tiktokAvatarRelPath?: string;
   /** Extra seconds added to outro scene visual duration after voice ends (TikTok card hold). Default 3. */
   outroHoldSec?: number;
+  /** Aspect ratio for multi-platform publishing. Default 9:16. */
+  ratio?: AspectRatio;
 }
 
 export function composeHtml(args: ComposeArgs): string {
@@ -72,13 +83,27 @@ export function composeHtml(args: ComposeArgs): string {
   const animJs = readFileSync(join(TPL_DIR, "animations.js"), "utf8");
   const tpl = readFileSync(join(TPL_DIR, "base.html.tmpl"), "utf8");
 
-  return tpl
+  let rendered = tpl
     .replace("{{TITLE}}", escapeHtml(script.metadata.title))
     .replace(/\{\{TOTAL_DURATION\}\}/g, totalDuration.toFixed(2))
     .replace("{{SHELL}}", shellHtml)
     .replace("{{SCENES}}", sceneHtml)
     .replace(/src="voice\.mp3"/g, `src="${audioRelPath}"`)
     .replace('<script src="animations.js"></script>', `<script>\n${animJs}\n</script>`);
+
+  const ratio = args.ratio ?? "9:16";
+  if (ratio !== "9:16") {
+    const dim = ASPECT_RATIOS[ratio] || ASPECT_RATIOS["9:16"];
+    const ratioClass = `ratio-${ratio.replace(":", "-")}`;
+    rendered = rendered
+      .replace('content="width=1080, height=1920"', `content="width=${dim.width}, height=${dim.height}"`)
+      .replace('data-width="1080"', `data-width="${dim.width}"`)
+      .replace('data-height="1920"', `data-height="${dim.height}"`)
+      .replace('<div id="stage"', `<div id="stage" class="${ratioClass}"`)
+      .replace('</head>', `  <style>html, body, #stage { width: ${dim.width}px !important; height: ${dim.height}px !important; }</style>\n</head>`);
+  }
+
+  return rendered;
 }
 
 // ── PERSISTENT SHELL ───────────────────────────────────────────────────────

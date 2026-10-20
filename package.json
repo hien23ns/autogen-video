@@ -19,6 +19,8 @@
     "qa:video": "tsx scripts/qa-video.ts",
     "voice:sample": "tsx scripts/sample-voice.ts",
     "prompts:preview": "tsx scripts/preview-prompts.ts",
+    "studio": "tsx scripts/studio.ts",
+    "batch": "tsx scripts/batch-runner.ts",
     "bot": "tsx src/bot/telegram-bot.ts"
   },
   "keywords": [

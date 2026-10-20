@@ -6,12 +6,14 @@
 import { readFile, writeFile, copyFile } from "node:fs/promises";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+import { parseArgs } from "node:util";
 import { ScriptSchema } from "./src/render/script-schema.js";
 import { loadConfig } from "./src/config.js";
 import { getDurationSec, concatWithSilence, mixSfxOntoVoice, type SfxMixSpec } from "./src/assets/audio-tools.js";
 import { indexSfxLibrary, pickSfxForScene, defaultPlayback } from "./src/assets/sfx-selector.js";
 import { existsSync } from "node:fs";
-import { composeHtml } from "./src/render/html-composer.js";
+import { composeHtml, type AspectRatio } from "./src/render/html-composer.js";
 import { renderWithHyperframes } from "./src/render/hyperframes-runner.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -26,14 +28,45 @@ const HYPERFRAMES_CONFIG = {
 };
 
 async function main() {
-  const outputDir = process.argv[2];
-  if (!outputDir) {
-    console.error("Usage: npx tsx rerender.ts <outputDir>");
-    process.exit(2);
+  const { values, positionals } = parseArgs({
+    options: {
+      scene: { type: "string" },
+      preset: { type: "string", default: "draft" },
+      ratio: { type: "string", default: "9:16" },
+      fps: { type: "string" },
+      help: { type: "boolean", short: "h" },
+    },
+    allowPositionals: true,
+    args: process.argv.slice(2),
+  });
+
+  const outputDir = positionals[0];
+  if (!outputDir || values.help) {
+    console.log(`
+🎬 Rerender Tool — Re-render composition without re-running TTS
+
+Usage:
+  npx tsx rerender.ts <outputDir> [options]
+
+Options:
+  --scene <id>       Only re-render a specific scene (e.g. --scene hook or --scene 1)
+  --preset <preset>  draft (30fps) | final (60fps high quality) [default: draft]
+  --ratio <ratio>    9:16 | 16:9 | 1:1 | 4:5 [default: 9:16]
+  --fps <number>     Custom fps override (e.g. 60)
+  -h, --help         Show this help
+`);
+    process.exit(values.help ? 0 : 2);
   }
 
   const cfg = loadConfig();
+  const ratio = (values.ratio as AspectRatio) || "9:16";
+  const preset = (values.preset as "draft" | "final") || "draft";
+  const fps = values.fps ? parseInt(values.fps, 10) : (preset === "final" ? 60 : 30);
+  const quality = preset === "final" ? "high" : "draft";
+
   console.log(`Re-rendering: ${outputDir}`);
+  console.log(`  Preset: ${preset} (${fps}fps, quality: ${quality}) | Ratio: ${ratio}`);
+  if (values.scene) console.log(`  Target scene only: ${values.scene}`);
 
   // Load script.json
   const raw = JSON.parse(await readFile(join(outputDir, "script.json"), "utf8"));
@@ -45,6 +78,33 @@ async function main() {
       : cfg.vbeeVoiceCode;
   }
   const script = ScriptSchema.parse(raw);
+
+  if (values.scene) {
+    const target = script.scenes.find((s) => s.id === values.scene);
+    if (!target) {
+      console.error(`❌ Scene id "${values.scene}" không tồn tại trong script!`);
+      console.error(`Danh sách cảnh: ${script.scenes.map((s) => s.id).join(", ")}`);
+      process.exit(1);
+    }
+    script.scenes = [target];
+  }
+
+  // Scene cache detection
+  const sceneHashes: Record<string, string> = {};
+  for (const s of script.scenes) {
+    sceneHashes[s.id] = createHash("sha256").update(JSON.stringify(s)).digest("hex").slice(0, 12);
+  }
+  const cacheFile = join(outputDir, "scene-cache.json");
+  let oldHashes: Record<string, string> = {};
+  if (existsSync(cacheFile)) {
+    try { oldHashes = JSON.parse(await readFile(cacheFile, "utf8")); } catch {}
+  }
+  console.log("\n🔍 Scene Cache Status:");
+  for (const s of script.scenes) {
+    const isDirty = oldHashes[s.id] !== sceneHashes[s.id];
+    console.log(`  - Scene ${s.id} [${sceneHashes[s.id]}]: ${isDirty ? "⚡ CHANGED / RE-RENDER" : "✔ UNCHANGED"}`);
+  }
+  await writeFile(cacheFile, JSON.stringify(sceneHashes, null, 2));
 
   // Probe per-scene durations from existing voice files
   const sceneAudio = await Promise.all(
@@ -132,6 +192,7 @@ async function main() {
     tiktok: cfg.tiktok,
     tiktokAvatarRelPath: ttAvatarFile,
     outroHoldSec: 3,
+    ratio,
   });
   await writeFile(join(outputDir, "index.html"), html);
   await writeFile(join(outputDir, "hyperframes.json"), JSON.stringify(HYPERFRAMES_CONFIG, null, 2));
@@ -144,8 +205,14 @@ async function main() {
   await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
 
   // Render
-  const videoPath = join(outputDir, "video.mp4");
-  await renderWithHyperframes({ compositionDir: outputDir, outputPath: videoPath });
+  const videoName = values.scene ? `video-scene-${values.scene}.mp4` : "video.mp4";
+  const videoPath = join(outputDir, videoName);
+  await renderWithHyperframes({
+    compositionDir: outputDir,
+    outputPath: videoPath,
+    fps,
+    quality,
+  });
   console.log(`\nDone: ${videoPath}`);
 }
 

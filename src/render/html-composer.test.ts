@@ -133,5 +133,36 @@ describe("composeHtml", () => {
     expect(html).toContain('class="dynamic-mesh-bg"');
     expect(html).toContain('class="mesh-orb mesh-orb-1"');
   });
+
+  it("supports multi-aspect ratios (16:9, 1:1, 4:5)", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-with-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 3 }));
+    
+    // Test 16:9
+    const html169 = composeHtml({
+      script,
+      sceneAudio,
+      gapSec: 0.3,
+      bgImageRelPath: null,
+      audioRelPath: "voice.mp3",
+      ratio: "16:9",
+    });
+    expect(html169).toContain('data-width="1920"');
+    expect(html169).toContain('data-height="1080"');
+    expect(html169).toContain('class="ratio-16-9"');
+
+    // Test 1:1
+    const html11 = composeHtml({
+      script,
+      sceneAudio,
+      gapSec: 0.3,
+      bgImageRelPath: null,
+      audioRelPath: "voice.mp3",
+      ratio: "1:1",
+    });
+    expect(html11).toContain('data-width="1080"');
+    expect(html11).toContain('data-height="1080"');
+    expect(html11).toContain('class="ratio-1-1"');
+  });
 });
 
