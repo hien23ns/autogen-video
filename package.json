@@ -16,6 +16,7 @@
     "build": "tsc",
     "sfx:download": "tsx scripts/download-sfx.ts",
     "sfx:filter": "tsx scripts/filter-sfx.ts",
+    "qa:video": "tsx scripts/qa-video.ts",
     "bot": "tsx src/bot/telegram-bot.ts"
   },
   "keywords": [
