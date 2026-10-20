@@ -27,6 +27,21 @@ export function getTelegramApiUrl(): string {
   return `https://api.telegram.org/bot${getBotToken()}`;
 }
 
+export const BOT_COMMANDS = [
+  { command: "start", description: "Bắt đầu & mở bảng điều khiển Studio" },
+  { command: "test", description: "Nhận ngay 1 video mẫu MP4 kiểm tra đường truyền" },
+  { command: "video", description: "Tạo video tin tức: /video <link> [theme] [ratio]" },
+  { command: "repo", description: "Biến GitHub repo thành video: /repo <link>" },
+  { command: "edit", description: "AI Ghost Editor: cắt lỗi video quay thô sang 9:16" },
+  { command: "captions", description: "5 phong cách phụ đề Karaoke triệu view" },
+  { command: "themes", description: "Xem 6 theme đồ họa (Cyberpunk, Matrix, Sunset...)" },
+  { command: "styles", description: "Xem 6 style hình ảnh (Tech, Minimal, Luxury...)" },
+  { command: "qa", description: "Kiểm tra chất lượng video & âm lượng -14 LUFS" },
+  { command: "publish", description: "Xem bộ đóng gói xuất bản đa nền tảng (publish/)" },
+  { command: "doctor", description: "Kiểm tra sức khỏe hệ thống (Node, FFmpeg, TTS)" },
+  { command: "help", description: "Hướng dẫn chi tiết & cú pháp tạo video viral" },
+];
+
 export const THEME_DESCRIPTIONS: Record<VideoTheme, { name: string; icon: string; desc: string }> = {
   "cyberpunk": {
     name: "Cyberpunk",
@@ -59,6 +74,18 @@ export const THEME_DESCRIPTIONS: Record<VideoTheme, { name: string; icon: string
     desc: "Trắng Bạc Thanh Lịch (Tin tức doanh nghiệp, tài chính, báo chí)",
   },
 };
+
+export async function registerBotCommands(): Promise<void> {
+  const api = getTelegramApiUrl();
+  try {
+    await axios.post(`${api}/setMyCommands`, {
+      commands: BOT_COMMANDS,
+    });
+    log.info(`✔ Đã đăng ký thành công ${BOT_COMMANDS.length} gợi ý lệnh slash với Telegram.`);
+  } catch (err: any) {
+    log.warn(`Không thể đăng ký setMyCommands: ${err.response?.data?.description || err.message}`);
+  }
+}
 
 export async function sendMessage(
   chatId: number | string,
@@ -277,15 +304,18 @@ export async function startBot() {
     const me = await axios.get(`${api}/getMe`);
     log.info(`✅ Kết nối Telegram Bot thành công: @${me.data.result.username} (${me.data.result.first_name})`);
 
-    // Clear any previous webhook to ensure getUpdates (long polling) works without 409 Conflict
+    // 1. Clear any previous webhook to ensure getUpdates (long polling) works without 409 Conflict
     try {
       await axios.post(`${api}/deleteWebhook?drop_pending_updates=false`);
       log.info("✔ Đã chuyển sang chế độ Polling (nhận lệnh trực tiếp từ Telegram)");
     } catch {}
 
+    // 2. Register slash command suggestions with Telegram
+    await registerBotCommands();
+
     console.log(`\n========================================================`);
     console.log(`🤖 TELEGRAM BOT SẴN SÀNG NHẬN LỆNH: @${me.data.result.username}`);
-    console.log(`   Hỗ trợ 6 theme: cyberpunk, matrix, sunset, crimson, dark, light`);
+    console.log(`   Đã đăng ký ${BOT_COMMANDS.length} lệnh gợi ý tự động khi gõ /`);
     console.log(`   Gửi /test để nhận video mẫu thử nghiệm`);
     console.log(`========================================================\n`);
   } catch (err: any) {
@@ -308,27 +338,32 @@ export async function startBot() {
 
         const chatId = msg.chat.id;
         const text = msg.text.trim();
+        const lower = text.toLowerCase();
 
-        if (text === "/start" || text === "/help") {
+        // 1. /start & /help
+        if (lower === "/start" || lower === "/help") {
           await sendMessage(
             chatId,
-            `👋 *Xin chào ${msg.from?.first_name || "bạn"}!*\n\n` +
-            `Chào mừng bạn đến với *Auto Video Generator Bot* của *${loadConfig().tiktok.displayName}* 🎬\n\n` +
-            `🤖 *CÁCH TẠO & ĐIỀU KHIỂN VIDEO:*\n` +
-            `1️⃣ *Cách 1 (Nhanh nhất)*: Dán link GitHub hoặc link bài báo vào đây kèm theme / style mong muốn:\n` +
-            `   • \`https://github.com/facebook/react\` (Mặc định theme Cyberpunk)\n` +
-            `   • \`https://github.com/hien23ns/Secmon matrix\` (Theme Matrix Green)\n` +
-            `   • \`https://vnexpress.net/... sunset\` (Theme Synthwave Sunset)\n` +
-            `   • \`https://github.com/... 16:9 tech\` (Tỉ lệ 16:9 phong cách tech)\n\n` +
-            `2️⃣ *Thử nghiệm nhanh*: Gửi */test* để nhận ngay 1 video mẫu kiểm tra đường truyền!\n\n` +
-            `🎨 *Gõ /themes* để xem danh sách 6 theme đồ họa\n` +
-            `🩺 *Gõ /doctor* để kiểm tra sức khỏe hệ thống\n\n` +
-            `⚡ Video sẽ được tự động biên kịch 3s Hook WOW, đọc voice dồn dập, tạo phụ đề động và gửi lại file MP4 ngay tại đây!`
+            `👋 *Chào mừng bạn đến với Studio AI Auto Video Gen!* 🎬\n\n` +
+            `Hệ thống sở hữu toàn bộ 8 Kỹ Năng (Skills) làm video triệu view. Hãy gõ dấu \`/\` vào ô chat để xem gợi ý:\n\n` +
+            `⚡ *CÁC LỆNH NHANH:*\n` +
+            `• */test* : Nhận ngay 1 video mẫu MP4 kiểm tra máy bạn\n` +
+            `• */video <link>* : Tạo video 9:16 từ bài báo / link web\n` +
+            `• */repo <link>* : Biến GitHub repo thành video giới thiệu code\n` +
+            `• */edit* : Hướng dẫn AI Ghost Editor cắt video quay thật\n` +
+            `• */captions* : Xem 5 style phụ đề Karaoke triệu view\n` +
+            `• */themes* : 6 theme đồ họa (Cyberpunk, Matrix, Sunset...)\n` +
+            `• */styles* : 6 visual style (Tech, Minimal, Luxury...)\n` +
+            `• */qa* : Tiêu chuẩn kiểm duyệt video & âm thanh -14 LUFS\n` +
+            `• */publish* : Xem bộ xuất bản TikTok/Shorts/Reels\n` +
+            `• */doctor* : Kiểm tra sức khỏe hệ thống\n\n` +
+            `👉 *Cách dùng nhanh nhất:* Bạn chỉ cần dán thẳng bất kỳ link bài báo hoặc GitHub repo vào đây!`
           );
           continue;
         }
 
-        if (text === "/test") {
+        // 2. /test
+        if (lower === "/test") {
           await sendMessage(chatId, "🧪 *Đang gửi video mẫu thử nghiệm tới bạn để kiểm tra tính năng nhận video...*");
           const sampleDir = join(process.cwd(), "output", "secmon-he-thong-giam-sat-va-phan-ung-su-20261019-2310");
           const sampleVideo = join(sampleDir, "video.mp4");
@@ -336,11 +371,11 @@ export async function startBot() {
           if (existsSync(sampleVideo)) {
             const caption =
               "✅ *Video mẫu thử nghiệm nhận từ Bot thành công!*\n\n" +
-              "🎬 Độ phân giải: 1080x1920 (9:16 Vertical)\n" +
-              "🔊 Âm thanh: -14.0 LUFS EBU R128\n" +
-              "💬 Phụ đề: Kinetic Karaoke Highlight\n" +
+              "🎬 Độ phân giải: 1080x1920 (9:16 Vertical 60fps)\n" +
+              "🔊 Âm thanh: -14.0 LUFS EBU R128 + BGM Ducking\n" +
+              "💬 Phụ đề: Kinetic Word-Level Karaoke\n" +
               "✨ Kênh: Code Suy 24h 🔱\n\n" +
-              "👉 Bây giờ bạn có thể gửi bất kỳ link bài báo hoặc GitHub repo nào để tạo video mới!";
+              "👉 Đường truyền hoàn hảo! Giờ bạn hãy gửi link bài báo hoặc GitHub repo bất kỳ để tạo video mới.";
             await sendVideo(chatId, sampleVideo, caption);
           } else {
             await sendMessage(chatId, "⚠️ Chưa có sẵn file video mẫu trong output. Hãy gửi một link URL để render video đầu tiên!");
@@ -348,7 +383,142 @@ export async function startBot() {
           continue;
         }
 
-        if (text === "/doctor" || text === "/status") {
+        // 3. /video
+        if (lower.startsWith("/video")) {
+          const rawArgs = text.slice(6).trim();
+          const { url, theme, style, ratio } = parseUserPrompt(rawArgs);
+          if (url) {
+            handleGenerateVideo(chatId, url, theme, style, ratio).catch((e) => {
+              log.error("Lỗi trong handleGenerateVideo:", e);
+            });
+          } else {
+            await sendMessage(
+              chatId,
+              `📹 *CÚ PHÁP TẠO VIDEO TỪ BÀI BÁO:*\n\n` +
+              `\` /video <link> [theme] [style] [ratio] \`\n\n` +
+              `*Ví dụ:*\n` +
+              `• \`/video https://vnexpress.net/so-hoa\`\n` +
+              `• \`/video https://vnexpress.net/... sunset\`\n` +
+              `• \`/video https://vnexpress.net/... 16:9 tech\`\n\n` +
+              `💡 Bạn cũng có thể dán link trực tiếp mà không cần gõ chữ \`/video\`.`
+            );
+          }
+          continue;
+        }
+
+        // 4. /repo
+        if (lower.startsWith("/repo")) {
+          const rawArgs = text.slice(5).trim();
+          const { url } = parseUserPrompt(rawArgs);
+          if (url) {
+            handleGenerateVideo(chatId, url, "cyberpunk", "tech").catch((e) => {
+              log.error("Lỗi trong handleGenerateVideo:", e);
+            });
+          } else {
+            await sendMessage(
+              chatId,
+              `⭐ *SKILL: GITHUB REPO TO VIDEO:*\n\n` +
+              `Biến repo GitHub thành video giới thiệu công nghệ với hiệu ứng gõ code, số sao ⭐ và mô tả tính năng.\n\n` +
+              `*Cú pháp:*\n` +
+              `\` /repo https://github.com/facebook/react \`\n\n` +
+              `Hoặc dán thẳng link GitHub vào ô chat!`
+            );
+          }
+          continue;
+        }
+
+        // 5. /edit
+        if (lower.startsWith("/edit")) {
+          await sendMessage(
+            chatId,
+            `✂️ *SKILL: AI GHOST VIDEO EDITOR:*\n\n` +
+            `Biến video quay thô của bạn (nói lắp, ngập ngừng, quay đi quay lại) thành video ngắn 9:16 dứt khoát:\n` +
+            `• Tự động phát hiện & cắt sạch khoảng lặng chết\n` +
+            `• Loại bỏ các từ đệm "ừm/ờ/à/thì/là"\n` +
+            `• Nhận diện nhiều lần quay hỏng và **chỉ giữ lại take tốt nhất**\n` +
+            `• Reframe 9:16 + Punch-in zoom đổi cỡ cảnh sinh động\n` +
+            `• Chuẩn hóa âm thanh -14 LUFS\n\n` +
+            `💻 *Chạy trên máy tính:*\n` +
+            `\`npm run edit-raw -- input.mp4 --reframe 9:16 --compare\``
+          );
+          continue;
+        }
+
+        // 6. /captions
+        if (lower === "/captions") {
+          await sendMessage(
+            chatId,
+            `💬 *SKILL: 5 PHONG CÁCH PHỤ ĐỀ VIRAL:*\n\n` +
+            `1️⃣ *\`karaoke-highlight\`*: Từ đang nói sáng rực màu neon kèm sóng nhạc (Mặc định).\n` +
+            `2️⃣ *\`pop-in\`*: Từng từ nảy bật (scale 1.25x -> 1.0x) dồn dập theo nhịp phát âm.\n` +
+            `3️⃣ *\`box-highlight\`*: Đóng hộp màu tương phản cao (vàng chữ đen / xanh neon).\n` +
+            `4️⃣ *\`hand-drawn-underline\`*: Gạch chân vẽ tay sinh động dưới từ khóa quan trọng.\n` +
+            `5️⃣ *\`minimal\`*: Chữ trắng đổ bóng nhẹ, không nền, tập trung vào hình ảnh.\n\n` +
+            `✨ Mọi phụ đề đều tự động định vị trong **Safe Zone**, không bị che bởi nút Like/Share của TikTok!`
+          );
+          continue;
+        }
+
+        // 7. /themes
+        if (lower === "/themes") {
+          let themesMsg = `🎨 *DANH SÁCH 6 GIAO DIỆN (THEMES) ĐỈNH CAO:*\n\n`;
+          for (const [key, t] of Object.entries(THEME_DESCRIPTIONS)) {
+            themesMsg += `${t.icon} *\`${key}\`* (*${t.name}*)\n   └ ${t.desc}\n\n`;
+          }
+          themesMsg += `💡 *Cách dùng*: Gửi link kèm tên theme, ví dụ: \`https://github.com/facebook/react matrix\``;
+          await sendMessage(chatId, themesMsg);
+          continue;
+        }
+
+        // 8. /styles
+        if (lower === "/styles") {
+          await sendMessage(
+            chatId,
+            `✨ *DANH SÁCH 6 PHONG CÁCH HÌNH ẢNH (--style):*\n\n` +
+            `• *\`news\`*: Đỏ nổi bật, giật tít thời sự nóng hổi.\n` +
+            `• *\`tech\`*: Xanh Cyan công nghệ, hiện đại, viền phát sáng.\n` +
+            `• *\`minimal\`*: Tối giản thanh lịch, đơn sắc, chữ mảnh.\n` +
+            `• *\`high-energy\`*: Vàng Neon rực rỡ, nhịp điệu nhanh, cuốn hút.\n` +
+            `• *\`luxury\`*: Vàng kim hoàng gia sang trọng, nền đen huyền bí.\n` +
+            `• *\`retro\`*: Tông hồng Cyber Synthwave thập niên 80 hoài niệm.\n\n` +
+            `💡 Gửi link kèm style: \`https://github.com/... luxury\``
+          );
+          continue;
+        }
+
+        // 9. /qa
+        if (lower === "/qa") {
+          await sendMessage(
+            chatId,
+            `🔍 *SKILL: AUTOMATED VIDEO QA ANALYZER:*\n\n` +
+            `Mọi video render đều trải qua vòng kiểm định nghiêm ngặt:\n` +
+            `• **Độ phân giải & FPS:** 1080x1920 60fps chuẩn TikTok / Shorts\n` +
+            `• **Mastering Loudness:** -14.0 LUFS EBU R128 (True Peak ≤ -1.0 dBTP)\n` +
+            `• **Auto BGM Ducking:** Tự hạ nhạc nền -18dB khi có giọng đọc\n` +
+            `• **Safe-Zone Check:** Trích 5 frame kiểm tra không tràn chữ và không che nút tương tác\n\n` +
+            `💻 *Chạy kiểm tra thủ công:*\n` +
+            `\`npm run qa:video -- output/<dir>/video.mp4\``
+          );
+          continue;
+        }
+
+        // 10. /publish
+        if (lower === "/publish") {
+          await sendMessage(
+            chatId,
+            `📦 *SKILL: MULTI-PLATFORM PUBLISH PACK:*\n\n` +
+            `Sau khi render xong video, hệ thống tự động sinh thư mục \`publish/\` gồm:\n` +
+            `• **social-copy.md:** Tiêu đề, hook, hashtag riêng biệt cho TikTok, YouTube Shorts, Instagram Reels.\n` +
+            `• **cover-9x16.jpg:** Ảnh bìa 9:16 sắc nét trích từ frame đẹp nhất.\n` +
+            `• **cover-16x9.jpg:** Ảnh bìa ngang 16:9 cho YouTube/Facebook.\n` +
+            `• **checklist.md:** Danh sách kiểm tra chất lượng trước khi bấm đăng.\n` +
+            `• **Gợi ý khung giờ vàng:** 11:30 - 13:00 và 19:30 - 21:30.`
+          );
+          continue;
+        }
+
+        // 11. /doctor
+        if (lower === "/doctor" || lower === "/status") {
           const cfg = loadConfig();
           const statusMsg =
             `🩺 *TRẠNG THÁI HỆ THỐNG AUTO VIDEO GEN:*\n\n` +
@@ -362,16 +532,7 @@ export async function startBot() {
           continue;
         }
 
-        if (text === "/themes") {
-          let themesMsg = `🎨 *DANH SÁCH 6 GIAO DIỆN (THEMES) ĐỈNH CAO:*\n\n`;
-          for (const [key, t] of Object.entries(THEME_DESCRIPTIONS)) {
-            themesMsg += `${t.icon} *\`${key}\`* (*${t.name}*)\n   └ ${t.desc}\n\n`;
-          }
-          themesMsg += `💡 *Cách dùng*: Gửi link kèm tên theme, ví dụ: \`https://github.com/facebook/react matrix\``;
-          await sendMessage(chatId, themesMsg);
-          continue;
-        }
-
+        // 12. Direct URL handling
         const { url, theme, style, ratio } = parseUserPrompt(text);
 
         if (url) {
@@ -382,7 +543,7 @@ export async function startBot() {
           await sendMessage(
             chatId,
             `💡 Vui lòng gửi một đường link bài viết hoặc link GitHub hợp lệ (bắt đầu bằng \`https://\`) để tạo video!\n\n` +
-            `Hoặc gõ */test* để nhận ngay video mẫu thử nghiệm.`
+            `Hoặc gõ dấu \`/\` để xem danh sách gợi ý toàn bộ kỹ năng có sẵn.`
           );
         }
       }
