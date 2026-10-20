@@ -1,0 +1,17 @@
+{
+  "name": "Code Suy 24h 🔱",
+  "handle": "@codesuy24h",
+  "colors": {
+    "primary": "#ffe600",
+    "secondary": "#00f0ff",
+    "accent": "#ff0055",
+    "bgDeep": "#070b14",
+    "surface": "rgba(15, 23, 42, 0.85)"
+  },
+  "fonts": {
+    "display": "'Bebas Neue', 'Montserrat', sans-serif",
+    "body": "'Be Vietnam Pro', 'Inter', sans-serif",
+    "code": "'JetBrains Mono', 'Courier New', monospace"
+  },
+  "logo": "assets/codesuy24h.png"
+}

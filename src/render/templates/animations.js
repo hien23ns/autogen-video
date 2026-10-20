@@ -1,6 +1,5 @@
-// v3 3-Tier Animation Engine — Modern Vertical Video & Dynamic Karaoke
-// HyperFrames runtime drives playback by seeking the timeline frame-by-frame.
-//
+// v4 Professional Motion-Graphics Animation Engine — 60fps & Spring Physics
+// HyperFrames runtime drives playback frame-by-frame.
 // Supported GSAP props: opacity, x, y, scale, scaleX, scaleY, rotation, width, height, visibility.
 // Do NOT use `delay:` in vars — use position parameter (3rd arg) instead.
 
@@ -19,49 +18,91 @@ window.__timelines["news-video"] = tl;
   });
 
   const stage = document.getElementById("stage");
+  if (!stage) return;
   const scenes = Array.from(stage.querySelectorAll(".scene"));
 
   // ── Scene dispatch ──────────────────────────────────────────────────────
-  scenes.forEach((scene) => {
+  scenes.forEach((scene, sceneIdx) => {
     const start = parseFloat(scene.dataset.start);
     const dur = parseFloat(scene.dataset.duration);
     const layout = scene.dataset.layout;
 
-    // Scene visibility: fade in/out
+    // Scene visibility: frame-accurate snap
     tl.set(scene, { opacity: 1 }, start);
     tl.set(scene, { opacity: 0 }, start + dur);
 
-    // ── Tier Top Animations (Badge + Headline) ────────────────────────────
+    // ── Virtual Camera: subtle push-in & drift per scene ─────────────────
+    const stacked = scene.querySelector(".scene-stacked");
+    if (stacked) {
+      // Alternate camera direction between scenes (push-in vs pull-out)
+      const isEven = sceneIdx % 2 === 0;
+      const camFromScale = isEven ? 1.0 : 1.04;
+      const camToScale = isEven ? 1.04 : 1.0;
+      const camDriftY = isEven ? -8 : 6;
+      tl.fromTo(
+        stacked,
+        { scale: camFromScale, y: 0 },
+        { scale: camToScale, y: camDriftY, ease: "sine.inOut", duration: dur },
+        start
+      );
+    }
+
+    // ── Tier Top Animations: 3-Attribute Entrance with Spring Physics ──────
     const badge = scene.querySelector(".tier-top-badge");
     if (badge) {
-      tl.fromTo(badge, { scale: 0.5, opacity: 0, y: -20 }, { scale: 1, opacity: 1, y: 0, duration: 0.4 }, start + 0.1);
+      tl.fromTo(
+        badge,
+        { scale: 0.6, opacity: 0, y: -25 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.45, ease: "back.out(2.0)" },
+        start + 0.08
+      );
     }
 
     const headline = scene.querySelector(".tier-top-headline");
     if (headline) {
-      tl.fromTo(headline, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, start + 0.2);
+      tl.fromTo(
+        headline,
+        { scale: 0.92, y: 35, opacity: 0 },
+        { scale: 1, y: 0, opacity: 1, duration: 0.55, ease: "back.out(1.5)" },
+        start + 0.18
+      );
       const mask = headline.querySelector(".shimmer-mask");
       if (mask) {
-        tl.fromTo(mask, { x: "-120%" }, { x: "120%", duration: 0.9 }, start + 0.6);
+        tl.fromTo(mask, { x: "-120%" }, { x: "130%", duration: 0.85, ease: "power2.inOut" }, start + 0.6);
       }
     }
 
-    // ── Tier Mid Animations (Mockup + Auto-scroll) ────────────────────────
+    // ── Tier Mid Animations: Mockup + Dynamic Auto-Scroll ──────────────────
     const mockup = scene.querySelector(".mockup-laptop") || scene.querySelector(".mockup-phone");
     if (mockup) {
-      tl.fromTo(mockup, { y: 60, scale: 0.92, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.55 }, start + 0.15);
+      tl.fromTo(
+        mockup,
+        { y: 70, scale: 0.88, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.4)" },
+        start + 0.16
+      );
     }
 
     const scrollTrack = scene.querySelector(".mockup-scroll-track");
     if (scrollTrack) {
       const scrollDuration = Math.max(1, dur * 0.75);
-      tl.fromTo(scrollTrack, { y: "0%" }, { y: "-35%", ease: "none", duration: scrollDuration }, start + 0.4);
+      tl.fromTo(
+        scrollTrack,
+        { y: "0%" },
+        { y: "-35%", ease: "power1.out", duration: scrollDuration },
+        start + 0.4
+      );
     }
 
-    // ── Tier Bot Animations (Karaoke Subtitles) ───────────────────────────
+    // ── Tier Bot Animations: Karaoke Subtitles & Kinetic Bounce ────────────
     const karaokeBox = scene.querySelector(".karaoke-display-box");
     if (karaokeBox) {
-      tl.fromTo(karaokeBox, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, start + 0.15);
+      tl.fromTo(
+        karaokeBox,
+        { y: 30, scale: 0.96, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.4)" },
+        start + 0.15
+      );
     }
 
     const chunks = Array.from(scene.querySelectorAll(".k-chunk"));
@@ -69,12 +110,12 @@ window.__timelines["news-video"] = tl;
       const cStart = parseFloat(chunk.dataset.kStart);
       const cEnd = parseFloat(chunk.dataset.kEnd);
       // Ensure all chunks start hidden
-      tl.set(chunk, { opacity: 0, y: 15, visibility: "hidden" }, 0);
-      // Activate chunk
-      tl.set(chunk, { opacity: 1, y: 0, visibility: "visible" }, cStart);
+      tl.set(chunk, { opacity: 0, y: 15, scale: 0.95, visibility: "hidden" }, 0);
+      // Activate chunk with spring rise
+      tl.set(chunk, { opacity: 1, y: 0, scale: 1.0, visibility: "visible" }, cStart);
       // Hide chunk when next chunk starts or at scene end
       const hideTime = cIdx < chunks.length - 1 ? cEnd : start + dur;
-      tl.set(chunk, { opacity: 0, y: -15, visibility: "hidden" }, hideTime);
+      tl.set(chunk, { opacity: 0, y: -15, scale: 0.95, visibility: "hidden" }, hideTime);
     });
 
     const words = Array.from(scene.querySelectorAll(".k-word"));
@@ -84,21 +125,29 @@ window.__timelines["news-video"] = tl;
       // Initial state: subtle dimmed
       tl.set(word, { opacity: 0.55, scale: 1.0 }, 0);
       // Highlight on read: kinetic bounce pop-in with vibrant lemon gold
-      tl.to(word, {
-        opacity: 1,
-        scale: 1.26,
-        color: "#ffe600",
-        duration: 0.1,
-        ease: "back.out(2)",
-      }, wStart);
+      tl.to(
+        word,
+        {
+          opacity: 1,
+          scale: 1.28,
+          color: "#ffe600",
+          duration: 0.1,
+          ease: "back.out(2.2)",
+        },
+        wStart
+      );
       // Finish highlight: settle into crisp solid white
-      tl.to(word, {
-        scale: 1.0,
-        color: "#ffffff",
-        opacity: 1,
-        duration: 0.08,
-        ease: "power1.inOut",
-      }, wEnd);
+      tl.to(
+        word,
+        {
+          scale: 1.0,
+          color: "#ffffff",
+          opacity: 1,
+          duration: 0.08,
+          ease: "power1.inOut",
+        },
+        wEnd
+      );
     });
 
     // ── Template Specific Inner Animations ────────────────────────────────
@@ -121,16 +170,26 @@ window.__timelines["news-video"] = tl;
   function animateHook(scene, tl, start) {
     const headline = scene.querySelector(".hook-headline");
     if (headline) {
-      tl.fromTo(headline, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6 }, start + 0.15);
+      tl.fromTo(
+        headline,
+        { scale: 0.75, opacity: 0, y: 30 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.7)" },
+        start + 0.15
+      );
       const mask = headline.querySelector(".shimmer-mask");
       if (mask) {
-        tl.fromTo(mask, { x: "-120%" }, { x: "120%", duration: 1.0 }, start + 0.7);
+        tl.fromTo(mask, { x: "-120%" }, { x: "130%", duration: 0.9, ease: "power2.inOut" }, start + 0.7);
       }
     }
 
     const subhead = scene.querySelector(".hook-subhead");
     if (subhead) {
-      tl.fromTo(subhead, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, start + 0.55);
+      tl.fromTo(
+        subhead,
+        { y: 40, scale: 0.94, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.3)" },
+        start + 0.45
+      );
     }
   }
 
@@ -138,17 +197,32 @@ window.__timelines["news-video"] = tl;
   function animateComparison(scene, tl, start) {
     const leftCard = scene.querySelector(".cmp-left");
     if (leftCard) {
-      tl.fromTo(leftCard, { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, start + 0.15);
+      tl.fromTo(
+        leftCard,
+        { x: -90, scale: 0.9, opacity: 0 },
+        { x: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.5)" },
+        start + 0.15
+      );
     }
 
     const vs = scene.querySelector(".cmp-vs");
     if (vs) {
-      tl.fromTo(vs, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35 }, start + 0.45);
+      tl.fromTo(
+        vs,
+        { scale: 0.3, opacity: 0, rotation: -45 },
+        { scale: 1, opacity: 1, rotation: 0, duration: 0.4, ease: "back.out(2.2)" },
+        start + 0.42
+      );
     }
 
     const rightCard = scene.querySelector(".cmp-right");
     if (rightCard) {
-      tl.fromTo(rightCard, { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, start + 0.6);
+      tl.fromTo(
+        rightCard,
+        { x: 90, scale: 0.9, opacity: 0 },
+        { x: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.5)" },
+        start + 0.55
+      );
     }
   }
 
@@ -156,21 +230,36 @@ window.__timelines["news-video"] = tl;
   function animateStatHero(scene, tl, start) {
     const value = scene.querySelector(".stat-value");
     if (value) {
-      tl.fromTo(value, { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6 }, start + 0.15);
+      tl.fromTo(
+        value,
+        { scale: 0.35, opacity: 0, y: 20 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.65, ease: "back.out(1.8)" },
+        start + 0.15
+      );
       const mask = value.querySelector(".shimmer-mask");
       if (mask) {
-        tl.fromTo(mask, { x: "-120%" }, { x: "120%", duration: 1.0 }, start + 0.7);
+        tl.fromTo(mask, { x: "-120%" }, { x: "130%", duration: 0.9, ease: "power2.inOut" }, start + 0.7);
       }
     }
 
     const label = scene.querySelector(".stat-label");
     if (label) {
-      tl.fromTo(label, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45 }, start + 0.55);
+      tl.fromTo(
+        label,
+        { y: 35, scale: 0.92, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.3)" },
+        start + 0.5
+      );
     }
 
     const context = scene.querySelector(".stat-context");
     if (context) {
-      tl.fromTo(context, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, start + 0.85);
+      tl.fromTo(
+        context,
+        { y: 25, scale: 0.95, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.2)" },
+        start + 0.75
+      );
     }
   }
 
@@ -178,17 +267,32 @@ window.__timelines["news-video"] = tl;
   function animateFeatureList(scene, tl, start) {
     const card = scene.querySelector(".feat-card");
     if (card) {
-      tl.fromTo(card, { y: 60, scale: 0.95, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.5 }, start + 0.1);
+      tl.fromTo(
+        card,
+        { y: 55, scale: 0.92, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.4)" },
+        start + 0.1
+      );
     }
 
     const rule = scene.querySelector(".feat-rule");
     if (rule) {
-      tl.fromTo(rule, { scaleX: 0, opacity: 1 }, { scaleX: 1, opacity: 1, duration: 0.4 }, start + 0.45);
+      tl.fromTo(
+        rule,
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 1, duration: 0.45, ease: "power2.out" },
+        start + 0.4
+      );
     }
 
     const bullets = scene.querySelectorAll(".feat-bullet");
     bullets.forEach((b, i) => {
-      tl.fromTo(b, { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4 }, start + 0.6 + i * 0.15);
+      tl.fromTo(
+        b,
+        { x: -45, scale: 0.92, opacity: 0 },
+        { x: 0, scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" },
+        start + 0.5 + i * 0.12
+      );
     });
   }
 
@@ -196,7 +300,12 @@ window.__timelines["news-video"] = tl;
   function animateCallout(scene, tl, start) {
     const card = scene.querySelector(".callout-card");
     if (card) {
-      tl.fromTo(card, { y: 50, scale: 0.92, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.55 }, start + 0.2);
+      tl.fromTo(
+        card,
+        { y: 60, scale: 0.9, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.6)" },
+        start + 0.18
+      );
     }
   }
 
@@ -204,22 +313,42 @@ window.__timelines["news-video"] = tl;
   function animateOutro(scene, tl, start, dur) {
     const cta = scene.querySelector(".out-cta-top");
     if (cta) {
-      tl.fromTo(cta, { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.45 }, start + 0.2);
+      tl.fromTo(
+        cta,
+        { y: -35, scale: 0.9, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.4)" },
+        start + 0.18
+      );
     }
 
     const channel = scene.querySelector(".out-channel");
     if (channel) {
-      tl.fromTo(channel, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55 }, start + 0.55);
+      tl.fromTo(
+        channel,
+        { scale: 0.55, opacity: 0, y: 15 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: "back.out(1.9)" },
+        start + 0.5
+      );
     }
 
     const underline = scene.querySelector(".out-underline");
     if (underline) {
-      tl.fromTo(underline, { width: 0 }, { width: "600px", duration: 0.5 }, start + 0.9);
+      tl.fromTo(
+        underline,
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 1, duration: 0.5, ease: "power2.out" },
+        start + 0.85
+      );
     }
 
     const source = scene.querySelector(".out-source");
     if (source) {
-      tl.fromTo(source, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, start + 1.3);
+      tl.fromTo(
+        source,
+        { y: 20, scale: 0.95, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.2)" },
+        start + 1.15
+      );
     }
 
     // TikTok follow card
@@ -228,26 +357,31 @@ window.__timelines["news-video"] = tl;
       const ttBtn = scene.querySelector("#tt-follow-btn");
       const ttFollow = scene.querySelector("#tt-btn-follow");
       const ttFollwing = scene.querySelector("#tt-btn-following");
-      const ttBase = start + 1.6;
+      const ttBase = start + 1.5;
 
-      tl.fromTo(ttCard, { opacity: 0, y: 80, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5 }, ttBase);
+      tl.fromTo(
+        ttCard,
+        { y: 90, scale: 0.85, opacity: 0 },
+        { y: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.6)" },
+        ttBase
+      );
 
       if (ttBtn) {
-        tl.to(ttBtn, { scale: 0.92, duration: 0.15 }, ttBase + 0.9);
-        tl.to(ttBtn, { scale: 1, duration: 0.4 }, ttBase + 1.05);
+        tl.to(ttBtn, { scale: 0.9, duration: 0.14, ease: "power1.inOut" }, ttBase + 0.85);
+        tl.to(ttBtn, { scale: 1, duration: 0.35, ease: "back.out(2)" }, ttBase + 0.99);
       }
 
       if (ttFollow) {
-        tl.to(ttFollow, { opacity: 0, duration: 0.08 }, ttBase + 1.05);
+        tl.to(ttFollow, { opacity: 0, duration: 0.08 }, ttBase + 0.99);
       }
       if (ttFollwing) {
-        tl.to(ttFollwing, { opacity: 1, duration: 0.08 }, ttBase + 1.08);
+        tl.to(ttFollwing, { opacity: 1, duration: 0.08 }, ttBase + 1.02);
       }
 
-      const holdStart = ttBase + 1.3;
+      const holdStart = ttBase + 1.25;
       const holdEnd = start + dur - 0.1;
       const holdLen = Math.max(0.5, holdEnd - holdStart);
-      tl.to(ttCard, { scale: 1.08, duration: holdLen }, holdStart);
+      tl.to(ttCard, { scale: 1.06, duration: holdLen, ease: "sine.inOut" }, holdStart);
     }
   }
 })();
