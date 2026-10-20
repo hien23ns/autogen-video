@@ -21,19 +21,16 @@ Single argument: a news article URL (starts with `http://` or `https://`) OR a p
 ### Step 2: Fetch content
 
 **URL mode:**
-- Use `WebFetch` with prompt:
-  ```
-  Trích xuất từ trang này:
-  - title (string): tiêu đề bài báo
-  - content (string): nội dung chính, ~500-1500 từ
-  - ogImage (string|null): URL ảnh og:image (meta og:image hoặc ảnh đầu bài)
-  - domain (string): domain của URL (vd "github.com")
-  Trả về JSON với 4 field trên.
-  ```
-- If WebFetch fails (paywall, JS-rendered, 4xx) → tell user to save content to a .txt file and pass that instead. Stop.
+- Use `read_url_content` (or `browser_subagent` if the page is dynamic / JS-rendered).
+- Extract:
+  - `title` (string): tiêu đề bài báo
+  - `content` (string): nội dung chính, ~500-1500 từ
+  - `ogImage` (string|null): URL ảnh og:image (meta og:image hoặc ảnh đầu bài)
+  - `domain` (string): domain của URL (vd "github.com")
+- If fetching fails (paywall, blocking, 4xx) → tell user to save content to a .txt file and pass that instead. Stop.
 
 **File mode:**
-- Use `Read` to read the .txt file
+- Use `view_file` to read the .txt file.
 - Title = first non-empty line (strip whitespace, max 80 chars)
 - Content = remaining lines joined
 - ogImage = `null`
@@ -44,7 +41,6 @@ Single argument: a news article URL (starts with `http://` or `https://`) OR a p
 - slug = lowercase ASCII (strip Vietnamese diacritics, đ→d), replace non-alphanumeric with `-`, trim dashes, max 40 chars
 - timestamp = current local time as `YYYYMMDD-HHmm`
 - outputDir = `output/<slug>-<timestamp>/`
-- Use Bash: `mkdir -p <outputDir>`
 
 ### Step 4: Generate script.json
 
@@ -58,7 +54,7 @@ Following the schema in `docs/superpowers/specs/2026-04-29-auto-news-video-desig
 
 ### ⚠️ CRITICAL: Vietnamese TTS Phonetic Rules
 
-The `voiceText` field is read aloud by LucyLab/ElevenLabs Vietnamese TTS. **Numbers and symbols are read literally** — if you write "5.5", TTS may say "năm rưỡi" (five and a half — WRONG for version numbers). **Always spell out numbers in Vietnamese phonetic form** in `voiceText`. The `templateData` fields (visual text on screen) can keep the original "5.5" / "82.7%" formatting.
+The `voiceText` field is read aloud by Edge TTS / LucyLab / ElevenLabs / Vbee. **Numbers and symbols are read literally** — if you write "5.5", TTS may say "năm rưỡi" (five and a half — WRONG for version numbers). **Always spell out numbers in Vietnamese phonetic form** in `voiceText`. The `templateData` fields (visual text on screen) can keep the original "5.5" / "82.7%" formatting.
 
 **Mandatory rules for `voiceText`:**
 
@@ -121,7 +117,7 @@ RIGHT (natural):
   "voiceText": "GPT năm chấm năm đạt tám mươi hai phẩy bảy phần trăm.",
   "templateData": {
     "template": "stat-hero",
-    "value": "82.7%",                 ← Visual: keep readable formatting
+    "value": "82.7%",
     "label": "Terminal-Bench"
   }
 }
@@ -175,11 +171,11 @@ If invalid, fix yourself silently. Up to 2 self-correction passes. After that, w
 
 ### Step 6: Write script.json
 
-Use the Write tool (not Bash) to write the validated JSON to `<outputDir>/script.json`.
+Use the `write_to_file` tool to write the validated JSON to `<outputDir>/script.json`.
 
 ### Step 7: Run the pipeline
 
-Use Bash, **foreground** (not background), stream output:
+Use `run_command` to run:
 
 ```bash
 npm run pipeline -- <outputDir>/script.json
@@ -193,22 +189,21 @@ If exit code != 0:
 
 Only run this step if Step 7 (the pipeline) succeeded — don't caption a video that wasn't actually produced.
 
-Write a short Vietnamese caption + exactly 4 hashtags for the video, based on `script.metadata.title` and the scenes' content (same topic understanding used to write the script — no new research needed).
+Write a short Vietnamese caption + exactly 4 hashtags for the video, based on `script.metadata.title` and the scenes' content.
 
 **Caption rules:**
 - 1 short, punchy line (~10–20 words), Vietnamese, văn nói.
-- Reuse or riff on the hook's claim/question — the caption is what gets someone to tap play, so it should carry the same curiosity/stat hook, not restate the title flatly.
-- Unlike `voiceText`, the caption is written text (not read by TTS) — 1 emoji is OK if it fits naturally, but don't force one in.
+- Reuse or riff on the hook's claim/question.
+- 1 emoji is OK if it fits naturally.
 - No markdown, no line breaks inside the caption itself.
 
 **Hashtag rules — exactly 4, in this order:**
-1. One broad tech/niche tag in Vietnamese (e.g. `#congnghe`, `#thutthuat`)
-2. One or two tags specific to the video's actual topic/product/company (e.g. `#openai`, `#ai`, `#pdf`, `#codegraph` — derive from the subject, don't reuse the same generic tag twice)
+1. One broad tech/niche tag in Vietnamese (e.g. `#congnghe`, `#thuthuat`)
+2. One or two tags specific to the video's actual topic/product/company (e.g. `#openai`, `#ai`, `#pdf`, `#codegraph`)
 3. One channel/discovery tag: `#cuongit` (and `#fyp` or `#xuhuong` if there's room — still capped at 4 total)
 - Lowercase, no spaces, no punctuation inside a tag.
-- Skip hashtags that don't genuinely fit the topic just to hit the count differently — 4 relevant tags beats 4 generic ones.
 
-Write the result to `<outputDir>/caption.txt` using the Write tool, formatted as:
+Write the result to `<outputDir>/caption.txt` using `write_to_file`:
 ```
 <caption line>
 
@@ -229,82 +224,6 @@ Tổng thời lượng: XX.Xs
 <caption line>
 #tag1 #tag2 #tag3 #tag4
 ```
-
-## Examples
-
-### Example 1: URL with image (GitHub)
-
-User: `/create-news-video https://github.com/Cuongyd196/auto-compare-video`
-
-Generated `script.json` (excerpt):
-```json
-{
-  "version": "1.0",
-  "metadata": {
-    "title": "Apple ra mắt iPhone 17 với camera 200MP",
-    "source": {
-      "url": "https://github.com/Cuongyd196/auto-compare-video",
-      "domain": "github.com",
-      "image": "https://opengraph.githubassets.com/1/Cuongyd196/auto-compare-video"
-    },
-    "channel": "Cường IT"
-  },
-  "voice": { "provider": "lucylab", "voiceId": "${VIETNAMESE_VOICEID}", "speed": 1.0 },
-  "scenes": [
-    {
-      "id": "hook", "type": "hook",
-      "voiceText": "Apple vừa ra mắt iPhone 17 với camera hai trăm megapixel.",
-      "visual": {
-        "background": { "type": "image", "src": "$source.image", "kenBurns": "zoom-in" },
-        "overlay":    { "darkness": 0.4 },
-        "text": {
-          "position": "center", "style": "hook-large",
-          "lines": [
-            { "content": "iPhone 17",     "emphasis": "primary", "animation": "scale-pop" },
-            { "content": "Camera 200MP!", "emphasis": "accent",  "animation": "slide-up-bounce" }
-          ]
-        },
-        "effects": ["flash-white-3f", "particle-burst"]
-      }
-    }
-    /* ... 3 body scenes + outro ... */
-  ]
-}
-```
-
-### Example 2: .txt file with no image (local)
-
-User: `/create-news-video news/agi-update.txt`
-
-Generated `script.json` (excerpt):
-```json
-{
-  "metadata": {
-    "title": "OpenAI công bố mô hình mới với khả năng lập luận",
-    "source": { "url": "local", "domain": "local", "image": null },
-    "channel": "Cường IT"
-  },
-  "scenes": [
-    {
-      "id": "hook", "type": "hook",
-      "voiceText": "OpenAI vừa công bố mô hình mới có khả năng lập luận như con người.",
-      "visual": {
-        "background": { "type": "gradient", "preset": "news-dark" },
-        "text": {
-          "position": "center", "style": "hook-large",
-          "lines": [
-            { "content": "Mô hình mới", "emphasis": "primary", "animation": "scale-pop" },
-            { "content": "Lập luận!",  "emphasis": "accent",  "animation": "slide-up-bounce" }
-          ]
-        },
-        "effects": ["flash-white-3f"]
-      }
-    }
-    /* ... outro line 3 = "Nguồn: local" ... */
-  ]
-}
-```
-Note: when source has no image, every scene uses `background.type = "gradient"` (no image fallback at composer level needed).
 
 ## Sound Effects (SFX)
 
@@ -329,80 +248,20 @@ Note: when source has no image, every scene uses `background.type = "gradient"` 
 
 Within a category, the actual file is picked **deterministically** by hashing the scene id — same script gives same SFX (idempotent), but different scenes in the same video get different files (variety).
 
-**This means:** in 95% of cases you should OMIT the `sfx` field entirely. Just write good Vietnamese voiceText with natural keywords (warning, breakthrough, launch, etc.) and the pipeline will pick the right sound.
-
 ### When to add explicit `sfx` override
 
-Only when you want to FORCE a specific sound that the keyword matcher won't infer:
-- Scene needs a particular signature sound (e.g., always a gong on important scenes)
-- Disable SFX for a particular scene: `"sfx": { "name": "none" }`
-- Use a specific file: `"sfx": { "name": "transition/whoosh-sfx", "volume": 0.4 }`
+Only when you want to FORCE a specific sound:
+- Scene needs a particular signature sound: `{ "name": "transition/whoosh-sfx", "volume": 0.4 }`
+- Disable SFX for a scene: `{ "name": "none" }`
 
-Example (rarely needed):
-```json
-{
-  "id": "body-3",
-  "voiceText": "...",
-  "templateData": { ... },
-  "sfx": { "name": "drumroll/snare-roll", "volume": 0.5, "startOffsetSec": 0.2 }
-}
-```
-
-The pipeline auto-mixes a sound effect at each scene start based on the template type:
-
-| Template | Default SFX | Sound character |
-|---|---|---|
-| `hook` | `transition/whoosh-soft` | Dramatic entrance |
-| `comparison` | `transition/swoosh` | Side-by-side reveal |
-| `stat-hero` | `emphasis/ding` | Number reveal |
-| `feature-list` | `transition/pop` | Bullet appearance |
-| `callout` | `alert/notification` | Important info |
-| `outro` | `outro/tada` | Ending signature |
-
-**You usually do NOT need to add a `sfx` field** — defaults work for 95% of cases.
-
-**ONLY add an explicit `sfx` override when content STRONGLY suggests a different mood:**
-
-| Content cue (in voiceText) | Override |
-|---|---|
-| "cảnh báo", "rủi ro", "đáng lo", "nguy hiểm" | `{ "name": "alert/notification", "volume": 0.4 }` |
-| "vượt", "kỷ lục", "xuất sắc", "tăng mạnh" (positive stat) | `{ "name": "emphasis/chime", "volume": 0.35 }` |
-| Want to disable SFX for this scene | `{ "name": "none" }` |
-
-Place `sfx` at the same level as `voiceText` and `templateData`:
-
-```json
-{
-  "id": "body-3",
-  "type": "body",
-  "voiceText": "Cảnh báo: AI tự chủ có thể đặt ra rủi ro về an ninh mạng.",
-  "templateData": { "template": "callout", ... },
-  "sfx": { "name": "alert/notification", "volume": 0.4 }
-}
-```
-
-Available SFX categories (any `<name>` subfolder in `assets/sfx/<category>/<name>.mp3`):
-- `transition/` — whoosh, swoosh, swish, pop, punch, page-flip, slide, riser
-- `emphasis/` — ding, tick, chime, ping, bong, pop, punch
-- `alert/` — notification, alert, alarm, warning
-- `success/` — applepay, achievement, win, xbox, steam, jet-set
-- `fail/` — wrong-answer-buzzer, incorrect, error, dank-meme
-- `outro/` — tada, win31, noooo
-- `reveal/` — magic-fairy, anime-girl, hey-female-voice
-- `drumroll/` — snare, drum-roll, boom
-- `countdown/` — beep, timer
-- `cinematic/` — rise, impact
-
-Browse `assets/sfx/<category>/` to see exact filenames. Reference WITHOUT the `.mp3` extension. Example:
-```json
-{ "sfx": { "name": "success/xbox-360-achievement-sound", "volume": 0.4 } }
-```
+Available SFX categories (`assets/sfx/<category>/<name>.mp3`):
+- `transition/`, `emphasis/`, `alert/`, `success/`, `fail/`, `outro/`, `reveal/`, `drumroll/`, `countdown/`, `cinematic/`
 
 ## Edge cases
 
 | Situation | Action |
 |---|---|
-| URL paywall / JS-rendered → WebFetch returns no content | Tell user: "Không đọc được URL (có thể do paywall hoặc JS). Hãy lưu nội dung vào file .txt rồi gọi lại." Stop. |
+| URL paywall / JS-rendered → read_url_content returns no content | Tell user: "Không đọc được URL (có thể do paywall hoặc JS). Hãy lưu nội dung vào file .txt rồi gọi lại." Stop. |
 | URL content < 200 words | Warn "Tin gốc ngắn, video có thể không đủ chất liệu", continue anyway |
 | URL content > 2000 words | Summarize to key points, fit ~150-200 words script |
 | File mode + file empty/missing | Error message, don't create output dir |

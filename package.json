@@ -22,6 +22,7 @@
     "studio": "tsx scripts/studio.ts",
     "batch": "tsx scripts/batch-runner.ts",
     "edit-raw": "tsx scripts/edit-raw.ts",
+    "skills:sync": "tsx scripts/sync-skills.ts",
     "bot": "tsx src/bot/telegram-bot.ts"
   },
   "keywords": [
