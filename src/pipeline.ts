@@ -12,6 +12,7 @@ import { indexSfxLibrary, pickSfxForScene, defaultPlayback } from "./assets/sfx-
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { composeHtml } from "./render/html-composer.js";
 import { renderWithHyperframes } from "./render/hyperframes-runner.js";
+import { generatePublishPack } from "./publish/publish-packager.js";
 import { log } from "./utils/logger.js";
 
 const TOTAL_STEPS = 8;
@@ -324,11 +325,23 @@ export async function runPipeline(input: string | PipelineRunOptions): Promise<P
   }
 
   // STEP 8
-  log.step(8, TOTAL_STEPS, "Done");
+  log.step(8, TOTAL_STEPS, "Generate multi-platform publishing package");
+  try {
+    const pack = await generatePublishPack({
+      compositionDir: outputDir,
+      videoPath: finalVideoPath,
+      script,
+    });
+    log.info(`Publish package generated in: ${pack.publishDir}`);
+  } catch (err: any) {
+    log.warn(`Could not generate full publish pack: ${err.message}`);
+  }
+
   console.log("\n=== Result ===");
   console.log(`Video:  ${finalVideoPath}`);
   console.log(`Audio:  ${voiceMp3}  (cho CapCut)`);
   console.log(`Script: ${join(outputDir, "script.txt")}  (cho CapCut auto-caption)`);
+  console.log(`Publish: ${join(outputDir, "publish")}  (TikTok, Reels, Shorts copy & covers)`);
   console.log(`Tong thoi luong: ${totalAudioSec.toFixed(2)}s`);
 
   return {
