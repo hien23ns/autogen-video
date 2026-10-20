@@ -8,6 +8,7 @@ import type { Script } from "../render/script-schema.js";
 describe("Publish Packager", () => {
   it("generates multi-platform social copy, metadata, and checklist", async () => {
     const dummyScript: Script = {
+      version: "1.0",
       schemaVersion: "2.0.0",
       metadata: {
         title: "SecMon: Hệ Thống Giám Sát An Ninh",
@@ -15,6 +16,7 @@ describe("Publish Packager", () => {
         source: {
           url: "https://github.com/test/secmon",
           domain: "github.com",
+          image: null,
         },
       },
       scenes: [
@@ -25,6 +27,7 @@ describe("Publish Packager", () => {
           templateData: {
             template: "hook",
             headline: "SecMon An Ninh",
+            kenBurns: "zoom-in",
           },
         },
       ],

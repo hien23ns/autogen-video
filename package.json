@@ -23,6 +23,8 @@
     "batch": "tsx scripts/batch-runner.ts",
     "edit-raw": "tsx scripts/edit-raw.ts",
     "skills:sync": "tsx scripts/sync-skills.ts",
+    "doctor": "tsx scripts/doctor.ts",
+    "schemas:export": "tsx scripts/export-schemas.ts",
     "bot": "tsx src/bot/telegram-bot.ts"
   },
   "keywords": [

@@ -210,7 +210,8 @@ export const VisualStyleSchema = z.enum(["news", "tech", "minimal", "high-energy
 export type VisualStyle = z.infer<typeof VisualStyleSchema>;
 
 export const ScriptSchema = z.object({
-  version: z.literal("1.0"),
+  version: z.string().default("1.0"),
+  schemaVersion: z.string().optional(),
   metadata: z.object({
     title: z.string().min(1),
     source: z.object({
@@ -226,7 +227,7 @@ export const ScriptSchema = z.object({
     provider: z.string().min(1),
     voiceId: z.string().min(1),
     speed: z.number().min(0.5).max(2.0),
-  }),
+  }).optional(),
   scenes: z
     .array(Scene)
     .min(5)
