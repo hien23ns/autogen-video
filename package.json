@@ -21,6 +21,7 @@
     "prompts:preview": "tsx scripts/preview-prompts.ts",
     "studio": "tsx scripts/studio.ts",
     "batch": "tsx scripts/batch-runner.ts",
+    "edit-raw": "tsx scripts/edit-raw.ts",
     "bot": "tsx src/bot/telegram-bot.ts"
   },
   "keywords": [
