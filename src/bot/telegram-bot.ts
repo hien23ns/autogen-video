@@ -276,6 +276,13 @@ export async function startBot() {
   try {
     const me = await axios.get(`${api}/getMe`);
     log.info(`✅ Kết nối Telegram Bot thành công: @${me.data.result.username} (${me.data.result.first_name})`);
+
+    // Clear any previous webhook to ensure getUpdates (long polling) works without 409 Conflict
+    try {
+      await axios.post(`${api}/deleteWebhook?drop_pending_updates=false`);
+      log.info("✔ Đã chuyển sang chế độ Polling (nhận lệnh trực tiếp từ Telegram)");
+    } catch {}
+
     console.log(`\n========================================================`);
     console.log(`🤖 TELEGRAM BOT SẴN SÀNG NHẬN LỆNH: @${me.data.result.username}`);
     console.log(`   Hỗ trợ 6 theme: cyberpunk, matrix, sunset, crimson, dark, light`);
