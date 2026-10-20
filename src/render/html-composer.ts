@@ -288,6 +288,227 @@ ${subhead ? `<div class="hook-subhead">${subhead}</div>` : ""}`.trim();
 </div>`.trim();
       break;
     }
+
+    case "tutorial-steps": {
+      layoutName = "tutorial-steps";
+      const progressPercent = Math.round((td.step / td.totalSteps) * 100);
+      const itemsHtml = td.instructions
+        .map((inst, i) => `<div class="tut-step-item"><span class="tut-step-num">${i + 1}</span><span>${escapeHtml(inst)}</span></div>`)
+        .join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">📌</span><span class="badge-text">BƯỚC ${td.step} / ${td.totalSteps}</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.title)}</h1>`.trim();
+      midInner = `
+<div class="layout-tutorial-steps">
+  <div class="tut-card glass-card">
+    <div class="tut-progress-bar"><div class="tut-progress-fill" style="width: ${progressPercent}%"></div></div>
+    <div class="tut-items">${itemsHtml}</div>
+    ${td.tips ? `<div class="tut-tips-pill">💡 Mẹo: ${escapeHtml(td.tips)}</div>` : ""}
+  </div>
+</div>`.trim();
+      break;
+    }
+
+    case "before-after": {
+      layoutName = "before-after";
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">🔄</span><span class="badge-text">SO SÁNH TRƯỚC VÀ SAU</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">HIỆU QUẢ ĐỘT PHÁ</h1>`.trim();
+      midInner = `
+<div class="layout-before-after">
+  <div class="ba-container">
+    <div class="ba-side ba-before">
+      <div class="ba-badge">TRƯỚC ĐÂY</div>
+      <div class="ba-label">${escapeHtml(td.beforeLabel)}</div>
+      <div class="ba-value">${escapeHtml(td.beforeValue)}</div>
+    </div>
+    <div class="ba-divider"><div class="ba-slider-knob">⇄</div></div>
+    <div class="ba-side ba-after">
+      <div class="ba-badge ba-badge-winner">HIỆN TẠI</div>
+      <div class="ba-label">${escapeHtml(td.afterLabel)}</div>
+      <div class="ba-value">${escapeHtml(td.afterValue)}</div>
+    </div>
+  </div>
+  ${td.improvement ? `<div class="ba-improvement-banner">🚀 Tăng trưởng: ${escapeHtml(td.improvement)}</div>` : ""}
+</div>`.trim();
+      break;
+    }
+
+    case "product-showcase": {
+      layoutName = "product-showcase";
+      const badge = td.badge ? `<div class="ps-badge">${escapeHtml(td.badge)}</div>` : "";
+      const hlHtml = td.highlights.map((h) => `<div class="ps-hl-item"><span class="ps-check">✓</span><span>${escapeHtml(h)}</span></div>`).join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">✨</span><span class="badge-text">TRÌNH LÀNG CÔNG NGHỆ</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.productName)}</h1>`.trim();
+      midInner = `
+<div class="layout-product-showcase">
+  <div class="ps-card glass-card">
+    ${badge}
+    <div class="ps-tagline">${escapeHtml(td.tagline)}</div>
+    <div class="ps-highlights">${hlHtml}</div>
+  </div>
+</div>`.trim();
+      break;
+    }
+
+    case "timeline": {
+      layoutName = "timeline";
+      const milestonesHtml = td.milestones
+        .map((m) => `<div class="tl-item"><div class="tl-node"></div><div class="tl-year">${escapeHtml(m.year)}</div><div class="tl-event">${escapeHtml(m.event)}</div></div>`)
+        .join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">⏳</span><span class="badge-text">DÒNG THỜI GIAN</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.era)}</h1>`.trim();
+      midInner = `
+<div class="layout-timeline">
+  <div class="tl-track-line"></div>
+  <div class="tl-milestones">${milestonesHtml}</div>
+</div>`.trim();
+      break;
+    }
+
+    case "map-route": {
+      layoutName = "map-route";
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">📍</span><span class="badge-text">${td.routeType || "LỘ TRÌNH KẾT NỐI"}</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.sourceLocation)} ➔ ${escapeHtml(td.destination)}</h1>`.trim();
+      midInner = `
+<div class="layout-map-route">
+  <div class="route-card glass-card">
+    <div class="route-node node-start"><span>🟢 Xuất phát:</span> <strong>${escapeHtml(td.sourceLocation)}</strong></div>
+    <div class="route-connector-line"><div class="route-pulse-dot"></div></div>
+    <div class="route-node node-end"><span>🏁 Đích đến:</span> <strong>${escapeHtml(td.destination)}</strong></div>
+    <div class="route-metrics-pill">⚡ Khoảng cách/Thời gian: ${escapeHtml(td.distanceOrTime)}</div>
+  </div>
+</div>`.trim();
+      break;
+    }
+
+    case "github-repo-explainer": {
+      layoutName = "github-repo-explainer";
+      const layersHtml = td.architectureLayers
+        .map((layer, idx) => `<div class="gh-layer-pill"><span class="gh-layer-idx">0${idx + 1}</span><span>${escapeHtml(layer)}</span></div>`)
+        .join("");
+      const stackHtml = td.techStack
+        .map((tech) => `<span class="gh-tech-tag">${escapeHtml(tech)}</span>`)
+        .join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">⭐</span><span class="badge-text">GITHUB REPO ARCHITECTURE</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.repoName)}</h1>`.trim();
+      midInner = `
+<div class="layout-github-repo">
+  <div class="gh-star-pill">★ ${escapeHtml(td.stars)} Stars trên GitHub</div>
+  <div class="gh-layers-box">${layersHtml}</div>
+  <div class="gh-stack-box">${stackHtml}</div>
+</div>`.trim();
+      break;
+    }
+
+    case "top-list-ranking": {
+      layoutName = "top-list-ranking";
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">🏆</span><span class="badge-text">BẢNG XẾP HẠNG TOP</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.itemTitle)}</h1>`.trim();
+      midInner = `
+<div class="layout-top-ranking">
+  <div class="rank-trophy-badge">#${td.rank}</div>
+  <div class="rank-score-pill">ĐIỂM ĐÁNH GIÁ: ${escapeHtml(td.score)}</div>
+  ${td.reason ? `<div class="rank-reason-card glass-card">${escapeHtml(td.reason)}</div>` : ""}
+</div>`.trim();
+      break;
+    }
+
+    case "chat-conversation": {
+      layoutName = "chat-conversation";
+      const msgsHtml = td.messages
+        .map((m) => `<div class="chat-bubble chat-${m.sender}"><div class="chat-sender-label">${m.sender === "user" ? "👤 Bạn" : m.sender === "bot" ? "🤖 AI" : "💡 Chuyên gia"}</div><div class="chat-text">${escapeHtml(m.text)}</div></div>`)
+        .join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">💬</span><span class="badge-text">HỘI THOẠI TRỰC TIẾP</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.conversationTitle || "GÓC HỘI THOẠI")}</h1>`.trim();
+      midInner = `
+<div class="layout-chat-conversation">
+  <div class="chat-screen glass-card">${msgsHtml}</div>
+</div>`.trim();
+      break;
+    }
+
+    case "code-walkthrough": {
+      layoutName = "code-walkthrough";
+      const lines = td.codeSnippet.split("\n").map((line, idx) => {
+        const lineNum = idx + 1;
+        const hlClass = td.highlightLine === lineNum ? " line-highlight" : "";
+        return `<div class="code-line${hlClass}"><span class="line-num">${lineNum}</span><span class="line-code">${escapeHtml(line)}</span></div>`;
+      }).join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">💻</span><span class="badge-text">${escapeHtml(td.language.toUpperCase())} CODE</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.filename)}</h1>`.trim();
+      midInner = `
+<div class="layout-code-walkthrough">
+  <div class="ide-window glass-card">
+    <div class="ide-header"><span class="mockup-dot red"></span><span class="mockup-dot yellow"></span><span class="mockup-dot green"></span><span class="ide-title">${escapeHtml(td.filename)}</span></div>
+    <div class="ide-body">${lines}</div>
+  </div>
+</div>`.trim();
+      break;
+    }
+
+    case "data-dashboard": {
+      layoutName = "data-dashboard";
+      const metricsHtml = td.metrics
+        .map((m) => {
+          const trendIcon = m.trend === "up" ? "▲" : m.trend === "down" ? "▼" : "•";
+          const trendClass = m.trend ? ` trend-${m.trend}` : "";
+          return `<div class="db-metric-card glass-card"><div class="db-metric-label">${escapeHtml(m.label)}</div><div class="db-metric-val">${escapeHtml(m.value)}</div><div class="db-metric-trend${trendClass}">${trendIcon}</div></div>`;
+        })
+        .join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">📈</span><span class="badge-text">BẢNG CHỈ SỐ DASHBOARD</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.title)}</h1>`.trim();
+      midInner = `
+<div class="layout-data-dashboard">
+  <div class="db-metrics-grid">${metricsHtml}</div>
+</div>`.trim();
+      break;
+    }
+
+    case "testimonial-reaction": {
+      layoutName = "testimonial-reaction";
+      const starsCount = Math.min(5, Math.max(1, td.rating || 5));
+      const starsStr = "★".repeat(starsCount);
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">⭐</span><span class="badge-text">ĐÁNH GIÁ CHUYÊN GIA</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.author)}</h1>`.trim();
+      midInner = `
+<div class="layout-testimonial">
+  <div class="tm-card glass-card">
+    <div class="tm-stars">${starsStr}</div>
+    <div class="tm-quote">&ldquo;${escapeHtml(td.quote)}&rdquo;</div>
+    <div class="tm-author-info"><strong>${escapeHtml(td.author)}</strong>${td.role ? ` · <span>${escapeHtml(td.role)}</span>` : ""}</div>
+  </div>
+</div>`.trim();
+      break;
+    }
+
+    case "cta-outro": {
+      layoutName = "cta-outro";
+      const platformsHtml = td.platforms
+        .map((p) => `<span class="cta-platform-pill">${escapeHtml(p)}</span>`)
+        .join("");
+      topTierHtml = `
+<div class="tier-top-badge"><span class="badge-icon">🚀</span><span class="badge-text">KÊU GỌI HÀNH ĐỘNG</span></div>
+<h1 class="tier-top-headline shimmer-sweep-target">${escapeHtml(td.headline)}</h1>`.trim();
+      midInner = `
+<div class="layout-cta-outro">
+  <div class="cta-card glass-card">
+    <div class="cta-handle">${escapeHtml(td.handle)}</div>
+    <div class="cta-platforms">${platformsHtml}</div>
+    <div class="cta-action-btn">${escapeHtml(td.actionText)} ➔</div>
+  </div>
+</div>`.trim();
+      break;
+    }
   }
 
   // Bottom Tier: Dynamic Karaoke Subtitles

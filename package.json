@@ -18,6 +18,7 @@
     "sfx:filter": "tsx scripts/filter-sfx.ts",
     "qa:video": "tsx scripts/qa-video.ts",
     "voice:sample": "tsx scripts/sample-voice.ts",
+    "prompts:preview": "tsx scripts/preview-prompts.ts",
     "bot": "tsx src/bot/telegram-bot.ts"
   },
   "keywords": [

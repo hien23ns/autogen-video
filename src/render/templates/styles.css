@@ -1112,3 +1112,129 @@ html, body {
   pointer-events: none;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   12 NEW TEMPLATES CSS LAYOUTS
+   ══════════════════════════════════════════════════════════════ */
+
+/* 1. Tutorial Steps */
+.layout-tutorial-steps { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.tut-card { width: 920px; padding: 40px; background: rgba(15, 23, 42, 0.75); border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+.tut-progress-bar { width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; margin-bottom: 30px; overflow: hidden; }
+.tut-progress-fill { height: 100%; background: linear-gradient(90deg, #ffe600, #00f0ff); border-radius: 10px; transition: width 0.6s ease; }
+.tut-items { display: flex; flex-direction: column; gap: 20px; }
+.tut-step-item { display: flex; align-items: center; gap: 20px; font-family: 'Be Vietnam Pro', sans-serif; font-size: 34px; font-weight: 700; color: #fff; }
+.tut-step-num { width: 50px; height: 50px; border-radius: 50%; background: #00f0ff; color: #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 26px; flex-shrink: 0; }
+.tut-tips-pill { margin-top: 30px; padding: 14px 24px; background: rgba(255, 230, 0, 0.15); border: 1px solid rgba(255, 230, 0, 0.4); border-radius: 20px; color: #ffe600; font-size: 26px; font-weight: 600; text-align: center; }
+
+/* 2. Before / After */
+.layout-before-after { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.ba-container { width: 940px; display: flex; align-items: stretch; gap: 16px; position: relative; }
+.ba-side { flex: 1; padding: 36px; border-radius: 28px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.ba-before { background: rgba(30, 41, 59, 0.7); border: 1.5px solid rgba(148, 163, 184, 0.3); }
+.ba-after { background: rgba(15, 23, 42, 0.85); border: 2px solid #00f0ff; box-shadow: 0 0 35px rgba(0, 240, 255, 0.35); }
+.ba-badge { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 2px; padding: 6px 16px; border-radius: 20px; margin-bottom: 20px; background: rgba(255,255,255,0.1); color: #94a3b8; }
+.ba-badge-winner { background: #00f0ff; color: #000; }
+.ba-label { font-size: 32px; font-weight: 700; color: #cbd5e1; margin-bottom: 12px; }
+.ba-value { font-family: 'Anton', 'Montserrat', sans-serif; font-size: 72px; font-weight: 900; color: #fff; }
+.ba-after .ba-value { color: #00f0ff; text-shadow: 0 0 25px rgba(0, 240, 255, 0.6); }
+.ba-divider { width: 30px; display: flex; align-items: center; justify-content: center; }
+.ba-slider-knob { width: 44px; height: 44px; border-radius: 50%; background: #ffe600; color: #000; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; box-shadow: 0 0 20px #ffe600; }
+.ba-improvement-banner { margin-top: 24px; padding: 12px 32px; background: rgba(0, 240, 255, 0.15); border: 1px solid #00f0ff; border-radius: 30px; color: #00f0ff; font-size: 30px; font-weight: 800; }
+
+/* 3. Product Showcase */
+.layout-product-showcase { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.ps-card { width: 920px; padding: 44px; background: rgba(15, 23, 42, 0.8); border: 2px solid rgba(255, 230, 0, 0.4); border-radius: 36px; box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(255, 230, 0, 0.2); text-align: center; }
+.ps-badge { display: inline-block; padding: 6px 20px; background: #ffe600; color: #000; font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 800; border-radius: 20px; margin-bottom: 20px; }
+.ps-tagline { font-family: 'Be Vietnam Pro', sans-serif; font-size: 36px; font-weight: 800; color: #fff; margin-bottom: 28px; }
+.ps-highlights { display: flex; flex-direction: column; gap: 16px; text-align: left; }
+.ps-hl-item { display: flex; align-items: center; gap: 16px; font-size: 32px; font-weight: 600; color: #e2e8f0; }
+.ps-check { width: 36px; height: 36px; border-radius: 50%; background: #00f0ff; color: #000; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; flex-shrink: 0; }
+
+/* 4. Timeline */
+.layout-timeline { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 30px; position: relative; }
+.tl-track-line { position: absolute; left: 160px; top: 10%; bottom: 10%; width: 6px; background: linear-gradient(180deg, #ffe600, #00f0ff); border-radius: 3px; }
+.tl-milestones { display: flex; flex-direction: column; gap: 36px; margin-left: 100px; width: 750px; }
+.tl-item { display: flex; align-items: center; gap: 24px; position: relative; }
+.tl-node { width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 4px solid #00f0ff; box-shadow: 0 0 20px #00f0ff; position: absolute; left: -69px; }
+.tl-year { font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; color: #ffe600; width: 140px; flex-shrink: 0; }
+.tl-event { font-family: 'Be Vietnam Pro', sans-serif; font-size: 32px; font-weight: 700; color: #fff; }
+
+/* 5. Map Route */
+.layout-map-route { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.route-card { width: 920px; padding: 40px; background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(0, 240, 255, 0.35); border-radius: 32px; }
+.route-node { font-size: 34px; color: #fff; margin-bottom: 20px; }
+.route-connector-line { width: 100%; height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; margin: 24px 0; position: relative; overflow: hidden; }
+.route-pulse-dot { width: 40px; height: 100%; background: #00f0ff; border-radius: 4px; box-shadow: 0 0 20px #00f0ff; animation: route-pulse 2s infinite linear; }
+@keyframes route-pulse { from { transform: translateX(-100%); } to { transform: translateX(950px); } }
+.route-metrics-pill { margin-top: 24px; padding: 12px 24px; background: rgba(255, 230, 0, 0.15); border: 1px solid #ffe600; border-radius: 20px; color: #ffe600; font-size: 28px; font-weight: 800; text-align: center; }
+
+/* 6. GitHub Repo Explainer */
+.layout-github-repo { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 20px; }
+.gh-star-pill { padding: 8px 24px; background: rgba(255, 230, 0, 0.2); border: 1px solid #ffe600; border-radius: 20px; color: #ffe600; font-size: 28px; font-weight: 800; }
+.gh-layers-box { width: 920px; display: flex; flex-direction: column; gap: 14px; }
+.gh-layer-pill { display: flex; align-items: center; gap: 18px; padding: 18px 28px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 20px; font-size: 30px; font-weight: 700; color: #fff; }
+.gh-layer-idx { font-family: 'Montserrat', sans-serif; color: #00f0ff; font-weight: 900; }
+.gh-stack-box { width: 920px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.gh-tech-tag { padding: 6px 18px; background: rgba(255,255,255,0.1); border-radius: 14px; font-size: 22px; font-weight: 700; color: #cbd5e1; }
+
+/* 7. Top List Ranking */
+.layout-top-ranking { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; gap: 20px; }
+.rank-trophy-badge { font-family: 'Anton', 'Montserrat', sans-serif; font-size: 160px; font-weight: 900; color: #ffe600; text-shadow: 0 0 50px rgba(255, 230, 0, 0.6); }
+.rank-score-pill { padding: 10px 28px; background: #00f0ff; color: #000; font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 900; border-radius: 25px; }
+.rank-reason-card { width: 900px; padding: 28px; font-size: 32px; font-weight: 700; color: #fff; text-align: center; }
+
+/* 8. Chat Conversation */
+.layout-chat-conversation { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.chat-screen { width: 920px; padding: 36px; display: flex; flex-direction: column; gap: 18px; }
+.chat-bubble { padding: 16px 24px; border-radius: 24px; max-width: 80%; display: flex; flex-direction: column; gap: 6px; }
+.chat-user { align-self: flex-end; background: #2563eb; color: #fff; border-bottom-right-radius: 4px; }
+.chat-bot, .chat-expert { align-self: flex-start; background: #1e293b; color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.3); border-bottom-left-radius: 4px; }
+.chat-sender-label { font-size: 20px; font-weight: 800; opacity: 0.8; }
+.chat-text { font-size: 30px; font-weight: 600; }
+
+/* 9. Code Walkthrough */
+.layout-code-walkthrough { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.ide-window { width: 940px; background: #080d16; border: 1px solid #334155; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.8); }
+.ide-header { display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: #0f172a; border-bottom: 1px solid #1e293b; }
+.ide-title { font-family: 'JetBrains Mono', monospace; font-size: 20px; color: #94a3b8; margin-left: 10px; }
+.ide-body { padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 24px; line-height: 1.6; }
+.code-line { display: flex; gap: 20px; padding: 4px 8px; border-radius: 6px; }
+.code-line.line-highlight { background: rgba(255, 230, 0, 0.18); border-left: 4px solid #ffe600; }
+.line-num { color: #475569; width: 30px; text-align: right; user-select: none; }
+.line-code { color: #f8fafc; }
+
+/* 10. Data Dashboard */
+.layout-data-dashboard { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.db-metrics-grid { width: 920px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.db-metric-card { padding: 30px; text-align: center; position: relative; }
+.db-metric-label { font-size: 26px; color: #94a3b8; font-weight: 700; margin-bottom: 10px; }
+.db-metric-val { font-family: 'Anton', 'Montserrat', sans-serif; font-size: 64px; font-weight: 900; color: #00f0ff; }
+.db-metric-trend.trend-up { color: #22c55e; font-size: 28px; }
+.db-metric-trend.trend-down { color: #ef4444; font-size: 28px; }
+
+/* 11. Testimonial Reaction */
+.layout-testimonial { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.tm-card { width: 920px; padding: 44px; text-align: center; }
+.tm-stars { font-size: 44px; color: #ffe600; margin-bottom: 20px; letter-spacing: 6px; }
+.tm-quote { font-size: 36px; font-style: italic; font-weight: 700; color: #fff; margin-bottom: 24px; line-height: 1.35; }
+.tm-author-info { font-size: 26px; color: #94a3b8; }
+
+/* 12. CTA Outro */
+.layout-cta-outro { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.cta-card { width: 920px; padding: 44px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+.cta-handle { font-family: 'Montserrat', sans-serif; font-size: 48px; font-weight: 900; color: #ffe600; text-shadow: 0 0 30px rgba(255, 230, 0, 0.5); }
+.cta-platforms { display: flex; gap: 14px; }
+.cta-platform-pill { padding: 8px 20px; background: rgba(255,255,255,0.1); border-radius: 20px; font-size: 22px; font-weight: 800; color: #fff; }
+.cta-action-btn { padding: 18px 44px; background: linear-gradient(135deg, #00f0ff, #2563eb); color: #fff; font-family: 'Montserrat', sans-serif; font-size: 32px; font-weight: 900; border-radius: 40px; box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4); }
+
+/* ══════════════════════════════════════════════════════════════
+   6 VISUAL STYLES (--style news, tech, minimal, high-energy, luxury, retro)
+   ══════════════════════════════════════════════════════════════ */
+.style-news .tier-top-badge { background: #ef4444; color: #fff; }
+.style-tech .tier-top-badge { background: #00f0ff; color: #000; }
+.style-minimal .tier-top-badge { background: transparent; border: 1.5px solid #fff; color: #fff; }
+.style-high-energy .tier-top-badge { background: #ffe600; color: #000; }
+.style-luxury .tier-top-badge { background: linear-gradient(135deg, #d4af37, #f3e5ab); color: #000; }
+.style-retro .tier-top-badge { background: #ec4899; color: #fff; }
+
+

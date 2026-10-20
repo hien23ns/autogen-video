@@ -163,8 +163,32 @@ window.__timelines["news-video"] = tl;
       animateCallout(scene, tl, start);
     } else if (layout === "outro") {
       animateOutro(scene, tl, start, dur);
+    } else {
+      animateNewTemplates(scene, tl, start, dur);
     }
   });
+
+  function animateNewTemplates(scene, tl, start, dur) {
+    const card = scene.querySelector(".glass-card") || scene.querySelector(".ba-container") || scene.querySelector(".layout-github-repo") || scene.querySelector(".layout-top-ranking");
+    if (card) {
+      tl.fromTo(card, { y: 60, scale: 0.9, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.55, ease: "back.out(1.5)" }, start + 0.15);
+    }
+
+    const items = scene.querySelectorAll(".tut-step-item, .ps-hl-item, .tl-item, .gh-layer-pill, .chat-bubble, .code-line, .db-metric-card, .cta-platform-pill");
+    items.forEach((item, idx) => {
+      tl.fromTo(item, { x: -30, scale: 0.94, opacity: 0 }, { x: 0, scale: 1, opacity: 1, duration: 0.38, ease: "back.out(1.4)" }, start + 0.35 + idx * 0.1);
+    });
+
+    const trophy = scene.querySelector(".rank-trophy-badge");
+    if (trophy) {
+      tl.fromTo(trophy, { scale: 0.3, opacity: 0, rotation: -15 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.6, ease: "back.out(2.0)" }, start + 0.2);
+    }
+
+    const progressFill = scene.querySelector(".tut-progress-fill");
+    if (progressFill) {
+      tl.fromTo(progressFill, { width: "0%" }, { width: progressFill.style.width || "100%", duration: 0.7, ease: "power2.out" }, start + 0.4);
+    }
+  }
 
   // ── HOOK ──────────────────────────────────────────────────────────────
   function animateHook(scene, tl, start) {
